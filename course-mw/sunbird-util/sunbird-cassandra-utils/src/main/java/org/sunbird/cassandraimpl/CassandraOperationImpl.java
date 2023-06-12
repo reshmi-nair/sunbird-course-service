@@ -845,4 +845,50 @@ public abstract class CassandraOperationImpl implements CassandraOperation {
     return response;
   }
 
+
+  @Override
+  public Response getRecordByUserId(
+          RequestContext requestContext, String keyspaceName, String tableName, Object key, List<String> fields) {
+    long startTime = System.currentTimeMillis();
+    logger.info(requestContext, "Cassandra Service getRecordBy key method started at ==" + startTime);
+    logger.info(requestContext, "Cassandra Service getRecordBy key method Keyspace ==" + keyspaceName
+            + "--- table name --- "+ tableName+ " --- Key --- "+keyspaceName+" --- fields ----"+ fields);
+    Response response = new Response();
+    try {
+      Session session = connectionManager.getSession(keyspaceName);
+      Builder selectBuilder;
+      if (fields != null && CollectionUtils.isNotEmpty(fields)) {
+        selectBuilder = QueryBuilder.select(fields.toArray(new String[fields.size()]));
+      } else {
+        selectBuilder = QueryBuilder.select().all();
+      }
+      Select selectQuery = selectBuilder.from(keyspaceName, tableName);
+      Where selectWhere = selectQuery.where();
+      if (key instanceof String) {
+        selectWhere.and(eq(Constants.USERID, key));
+      } else if (key instanceof Map) {
+        Map<String, Object> compositeKey = (Map<String, Object>) key;
+        compositeKey
+                .entrySet()
+                .stream()
+                .forEach(
+                        x -> {
+                          CassandraUtil.createQuery(x.getKey(), x.getValue(), selectWhere);
+                        });
+      }
+      logger.info(requestContext, selectWhere.getQueryString());
+      ResultSet results = session.execute(selectWhere);
+      response = CassandraUtil.createResponse(results);
+      logger.info(requestContext, response.toString());
+    } catch (Exception e) {
+      logger.error(requestContext, Constants.EXCEPTION_MSG_FETCH + tableName + " : " + e.getMessage(), e);
+      throw new ProjectCommonException(
+              ResponseCode.SERVER_ERROR.getErrorCode(),
+              ResponseCode.SERVER_ERROR.getErrorMessage(),
+              ResponseCode.SERVER_ERROR.getResponseCode());
+    }
+    logQueryElapseTime("getRecordByUserId", startTime);
+    return response;
+  }
+
 }

@@ -349,6 +349,8 @@ public final class JsonKey {
   public static final String NOTE_ID = "noteId";
   public static final String NOTIFICATION = "notification";
   public static final String NULL = "null";
+  public static final String NODAL_OFFICER= "NODAL_OFFICER";
+  public static final String ORG_ADMIN="ORG_ADMIN";
   public static final String OBJECT_ID = "objectId";
   public static final String OBJECT_IDS = "objectIds";
   public static final String OBJECT_TYPE = "objectType";
@@ -460,6 +462,7 @@ public final class JsonKey {
   public static final String ROLE_GROUP = "role_group";
   public static final String ROLE_GROUP_ID = "rolegroupid";
   public static final String ROLES = "roles";
+  public static final String USER_ROLES_DB = "user_roles";
   public static final String ROLLUP = "rollup";
   public static final String ROOT_ORG = "rootOrg";
   public static final String ROOT_ORG_ID = "rootOrgId";
