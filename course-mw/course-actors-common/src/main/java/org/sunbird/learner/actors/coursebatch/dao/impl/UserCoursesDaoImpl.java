@@ -19,7 +19,7 @@ public class UserCoursesDaoImpl implements UserCoursesDao {
 
   private CassandraOperation cassandraOperation = ServiceFactory.getInstance();
   private ObjectMapper mapper = new ObjectMapper();
-  static UserCoursesDao userCoursesDao;
+  public static UserCoursesDao userCoursesDao;
   private static final String KEYSPACE_NAME =
       Util.dbInfoMap.get(JsonKey.LEARNER_COURSE_DB).getKeySpace();
   private static final String KEY_SPACE_NAME =
