@@ -1,31 +1,26 @@
 package org.sunbird.learner.actors.certificate.service;
 
 import java.text.MessageFormat;
-import java.util.*;
-
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.collections.CollectionUtils;
 import org.sunbird.actor.base.BaseActor;
-import org.sunbird.common.CassandraUtil;
 import org.sunbird.common.exception.ProjectCommonException;
 import org.sunbird.common.models.response.Response;
 import org.sunbird.common.models.util.JsonKey;
-import org.sunbird.cassandra.CassandraOperation;
 import org.sunbird.common.models.util.LoggerUtil;
 import org.sunbird.common.models.util.ProjectUtil;
 import org.sunbird.common.models.util.TelemetryEnvKey;
 import org.sunbird.common.models.util.datasecurity.OneWayHashing;
 import org.sunbird.common.request.Request;
 import org.sunbird.common.responsecode.ResponseCode;
-import org.sunbird.helper.ServiceFactory;
 import org.sunbird.kafka.client.InstructionEventGenerator;
 import org.sunbird.learner.constants.CourseJsonKey;
 import org.sunbird.learner.constants.InstructionEvent;
 import org.sunbird.learner.util.CourseBatchUtil;
 import org.sunbird.learner.util.Util;
-import org.sunbird.models.user.courses.UserCourses;
-import org.sunbird.helper.ServiceFactory;
-
-import static org.sunbird.learner.actors.coursebatch.dao.impl.UserCoursesDaoImpl.userCoursesDao;
 
 public class CertificateActor extends BaseActor {
   
@@ -44,9 +39,6 @@ public class CertificateActor extends BaseActor {
       return value;
     }
   };
-
-  private Util.DbInfo userRoleDb = Util.dbInfoMap.get(JsonKey.USER_ROLES_DB);
-  private final CassandraOperation cassandraOperation = ServiceFactory.getInstance();
 
   @Override
   public void onReceive(Request request) throws Throwable {
@@ -108,18 +100,6 @@ public class CertificateActor extends BaseActor {
     final String courseId = (String) request.getRequest().get(JsonKey.COURSE_ID);
     List<String> userIds = (List<String>) request.getRequest().get(JsonKey.USER_IDs);
     final boolean reIssue = isReissue(request.getContext().get(CourseJsonKey.REISSUE));
-    Integer statusCode = (Integer) request.getOrDefault(JsonKey.STATUS, 0);
-    for (int x = 0; x < userIds.size(); x++) {
-      UserCourses enrolmentData = userCoursesDao.read(request.getRequestContext(), userIds.get(x), courseId, batchId);
-      if (enrolmentData.getComment() != null) {
-        enrolmentData.getComment().put(getUserRole(request.getContext().getOrDefault(JsonKey.REQUESTED_BY, "").toString()), "");
-        // creating request map
-        HashMap<String, Object> map =(HashMap<String, Object>) createCourseEvalRequestMap(enrolmentData.getComment(), statusCode);
-        // creating cassandra column map
-        HashMap<String, Object> data = (HashMap<String, Object>) CassandraUtil.changeCassandraColumnMapping(map);
-        userCoursesDao.updateV2(request.getRequestContext(), userIds.get(x), courseId, batchId, data);
-      }
-    }
     Map<String, Object> courseBatchResponse =
             CourseBatchUtil.validateCourseBatch(request.getRequestContext(), courseId, batchId);
     if (null == courseBatchResponse.get("cert_templates")) {
@@ -210,32 +190,4 @@ public class CertificateActor extends BaseActor {
     String topic = ProjectUtil.getConfigValue("kafka_topics_certificate_instruction");
     InstructionEventGenerator.pushInstructionEvent(batchId, topic, data);
   }
-
-
-  private Map<String, Object> createCourseEvalRequestMap(Map<String, String> comment, Integer statusCode) {
-    Map<String, Object> map = new HashMap<>();
-    map.put(JsonKey.STATUS, statusCode);
-    map.put(JsonKey.COMMENT, comment);
-    return map;
-  }
-
-  private String getUserRole(String userid) {
-    Response response = cassandraOperation.getRecordByUserId(null, userRoleDb.getKeySpace(), userRoleDb.getTableName(), userid, null);
-    List<Map<String, String>> responseList = (List<Map<String, String>>) response.get("response");
-
-    List<String> filteredRoles = new ArrayList<>();
-    for (Map<String, String> roleMap : responseList) {
-      String role = roleMap.get(JsonKey.ROLE);
-      if (role.equals(JsonKey.NODAL_OFFICER) || role.equals(JsonKey.ORG_ADMIN)) {
-        filteredRoles.add(role);
-      }
-    }
-
-    if (!filteredRoles.isEmpty()) {
-      return filteredRoles.get(0);
-    } else {
-      throw new NoSuchElementException("No matching role found for user ID: " + userid);
-    }
-  }
-
 }
