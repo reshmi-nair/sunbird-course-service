@@ -110,10 +110,13 @@ public class CertificateActor extends BaseActor {
     for (int x = 0; x < userIds.size(); x++) {
       UserCoursesDaoImpl userCoursesDao=new UserCoursesDaoImpl();
       UserCourses enrolmentData = userCoursesDao.read(request.getRequestContext(), userIds.get(x), courseId, batchId);
+      logger.info(request.getRequestContext(),"checking enrolment Data"+enrolmentData);
       if (enrolmentData.getComment() != null) {
         enrolmentData.getComment().put(getUserRole(request.getContext().getOrDefault(JsonKey.REQUESTED_BY, "").toString()), "");
+        logger.info(request.getRequestContext(),"checking comment from enrolment"+enrolmentData.getComment());
         // creating request map
         HashMap<String, Object> map =(HashMap<String, Object>) createCourseEvalRequestMap(enrolmentData.getComment(), statusCode);
+        logger.info(null,"checking map"+map);
         // creating cassandra column map
         HashMap<String, Object> data = (HashMap<String, Object>) CassandraUtil.changeCassandraColumnMapping(map);
         userCoursesDao.updateV2(request.getRequestContext(), userIds.get(x), courseId, batchId, data);
