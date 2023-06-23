@@ -154,6 +154,8 @@ public final class JsonKey {
   public static final String COURSE_LOGO_URL = "courseLogoUrl";
   public static final String COURSE_MANAGEMENT_DB = "courseManagement_db";
   public static final String COURSE_NAME = "courseName";
+
+  public static final String COURSENAME = "coursename";
   public static final String COURSE_PROGRESS = "progress";
   public static final String COURSE_PUBLISHED_STATUS = "course_publish_status";
   public static final String COURSE_VERSION = "courseVersion";

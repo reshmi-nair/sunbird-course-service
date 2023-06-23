@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Map;
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -24,6 +25,15 @@ public class CourseUser implements Serializable {
 
   private Date enrolledDate;
 
+  private Map<String,String> comment;
+
+  public Map<String, String> getComment() {
+    return comment;
+  }
+
+  public void setComment(Map<String, String> comment) {
+    this.comment = comment;
+  }
 
   public String getCourseId() {
     return courseid;

@@ -21,6 +21,8 @@ public interface Constants {
 
   // CONSTANT
   public static final String COURSE_ID = "courseId";
+  public static final String COURSEID = "courseid";
+  public static final String BATCHID = "batchid";
   public static final String USER_ID = "userId";
   public static final String USERID = "userid";
   public static final String CONTENT_ID = "contentId";

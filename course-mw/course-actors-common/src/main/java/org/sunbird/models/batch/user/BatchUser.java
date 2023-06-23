@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -22,6 +23,16 @@ public class BatchUser implements Serializable {
     private int status;
 
     private Date enrollDate;
+
+    private Map<String,String> comment;
+
+    public Map<String, String> getComment() {
+        return comment;
+    }
+
+    public void setComment(Map<String, String> comment) {
+        this.comment = comment;
+    }
 
     public String getUsername() {
         return username;
