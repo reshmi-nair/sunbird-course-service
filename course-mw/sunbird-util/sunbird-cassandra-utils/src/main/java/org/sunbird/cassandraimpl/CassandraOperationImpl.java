@@ -385,6 +385,7 @@ public abstract class CassandraOperationImpl implements CassandraOperation {
           .forEach(
               x -> {
                 assignments.and(QueryBuilder.set(x.getKey(), x.getValue()));
+                logger.info(null,"QueryBuilder "+assignments.getQueryString());
               });
       compositeKey
           .entrySet()

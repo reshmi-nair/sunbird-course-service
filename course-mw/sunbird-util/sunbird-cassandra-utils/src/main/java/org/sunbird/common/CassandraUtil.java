@@ -345,6 +345,7 @@ public final class CassandraUtil {
   public static Map<String, Object> changeCassandraColumnMapping(Map<String, Object> map) {
     Map<String, Object> newMap = new HashMap<>();
     map.entrySet().forEach(entry -> newMap.put(propertiesCache.readPropertyValue(entry.getKey()), entry.getValue()));
+    logger.info(null,"newMap "+newMap);
     return newMap;
   }
 }
