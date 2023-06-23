@@ -119,6 +119,7 @@ public class CertificateActor extends BaseActor {
         logger.info(null,"checking map"+map);
         // creating cassandra column map
         HashMap<String, Object> data = (HashMap<String, Object>) CassandraUtil.changeCassandraColumnMapping(map);
+        logger.info(null,"data "+data);
         userCoursesDao.updateV2(request.getRequestContext(), userIds.get(x), courseId, batchId, data);
       }
     }
