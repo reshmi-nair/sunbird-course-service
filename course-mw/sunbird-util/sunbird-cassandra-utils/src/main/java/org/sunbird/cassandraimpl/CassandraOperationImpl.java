@@ -581,28 +581,33 @@ public abstract class CassandraOperationImpl implements CassandraOperation {
     try {
       Select selectQuery = select().all().from(keyspaceName, tableName);
       if (MapUtils.isNotEmpty(params)) {
+        boolean isSearch = false;
+        if(params.containsKey(JsonKey.SEARCH)) {
+          isSearch = (Boolean) params.getOrDefault(JsonKey.SEARCH, false);
+          params.remove(JsonKey.SEARCH);
+        }
         Select.Where where = selectQuery.where();
         for (Map.Entry<String, Object> filter : params.entrySet()) {
           Object value = filter.getValue();
           if(value!=""){
             if (value instanceof List) {
-              if(((List) value).size()>0) {
+              if (((List) value).size() > 0) {
                 where = createQueryForList(request, where, filter);
               }
-              if (filter.getKey().equalsIgnoreCase(JsonKey.NAME)) {
-                String option=value.toString();
-                where=where.and(QueryBuilder.like(JsonKey.NAME,option));
+            }else if(isSearch) {
+              logger.debug(null,"search param "+filter.getKey());
+              String option = filter.getValue().toString();
+              if (option.length() == 1) {
+                option += "%";
               }
+              option = option.replace("\\", "\\\\").replace("_", "\\_");
+              where = where.and(QueryBuilder.like(filter.getKey(), option));
             } else {
               where = where.and(QueryBuilder.eq(filter.getKey(), filter.getValue()));
             }
           }
         }
       }
-      /*if(sortMap.getOrDefault(JsonKey.ENROLL_DATE,"").equals("desc"))
-        selectQuery.orderBy(QueryBuilder.desc(JsonKey.ENROLL_DATE));
-      if(sortMap.getOrDefault(JsonKey.ENROLL_DATE,"").equals("asc"))
-        selectQuery.orderBy(QueryBuilder.asc(JsonKey.ENROLL_DATE));*/
       Integer limit=(Integer) request.getOrDefault(JsonKey.LIMIT,0);
       if(limit != null && limit > 0){
         selectQuery.limit(limit);
@@ -889,6 +894,55 @@ public abstract class CassandraOperationImpl implements CassandraOperation {
               ResponseCode.SERVER_ERROR.getResponseCode());
     }
     logQueryElapseTime("getRecordByUserId", startTime);
+    return response;
+  }
+
+  public Response deleteRecordBatchId(String keyspaceName, String tableName, String identifier, RequestContext requestContext) {
+    long startTime = System.currentTimeMillis();
+    logger.info(requestContext,
+            "Cassandra Service deleteRecord method started at ==" + startTime);
+    Response response = new Response();
+    try {
+      Delete.Where delete =
+              QueryBuilder.delete()
+                      .from(keyspaceName, tableName)
+                      .where(eq(Constants.BATCHID, identifier));
+      logger.debug(requestContext, delete.getQueryString());
+      connectionManager.getSession(keyspaceName).execute(delete);
+      response.put(Constants.RESPONSE, Constants.SUCCESS);
+    } catch (Exception e) {
+      logger.error(requestContext, Constants.EXCEPTION_MSG_DELETE + tableName + " : " + e.getMessage(), e);
+      throw new ProjectCommonException(
+              ResponseCode.SERVER_ERROR.getErrorCode(),
+              ResponseCode.SERVER_ERROR.getErrorMessage(),
+              ResponseCode.SERVER_ERROR.getResponseCode());
+    }
+    logQueryElapseTime("deleteRecord", startTime);
+    return response;
+  }
+
+
+  public Response deleteRecordCourseId(String keyspaceName, String tableName, String identifier, RequestContext requestContext) {
+    long startTime = System.currentTimeMillis();
+    logger.info(requestContext,
+            "Cassandra Service deleteRecord method started at ==" + startTime);
+    Response response = new Response();
+    try {
+      Delete.Where delete =
+              QueryBuilder.delete()
+                      .from(keyspaceName, tableName)
+                      .where(eq(Constants.COURSEID, identifier));
+      logger.debug(requestContext, delete.getQueryString());
+      connectionManager.getSession(keyspaceName).execute(delete);
+      response.put(Constants.RESPONSE, Constants.SUCCESS);
+    } catch (Exception e) {
+      logger.error(requestContext, Constants.EXCEPTION_MSG_DELETE + tableName + " : " + e.getMessage(), e);
+      throw new ProjectCommonException(
+              ResponseCode.SERVER_ERROR.getErrorCode(),
+              ResponseCode.SERVER_ERROR.getErrorMessage(),
+              ResponseCode.SERVER_ERROR.getResponseCode());
+    }
+    logQueryElapseTime("deleteRecord", startTime);
     return response;
   }
 

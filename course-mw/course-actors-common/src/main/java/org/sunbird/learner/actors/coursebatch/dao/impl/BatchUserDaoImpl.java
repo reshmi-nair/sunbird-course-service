@@ -32,7 +32,7 @@ public class BatchUserDaoImpl implements BatchUserDao {
     public BatchUser readById(RequestContext requestContext, String batchId) {
 
         Map<String, Object> primaryKey = new HashMap<>();
-        primaryKey.put(JsonKey.BATCH_ID, batchId);
+        primaryKey.put(JsonKey.BATCH_ID_KEY, batchId);
         Response response = cassandraOperation.getRecordByIdentifier(requestContext, batchUserDb.getKeySpace(), batchUserDb.getTableName(), primaryKey, null);
         List<Map<String, Object>> batchUserList =
                 (List<Map<String, Object>>) response.get(JsonKey.RESPONSE);
@@ -48,13 +48,9 @@ public class BatchUserDaoImpl implements BatchUserDao {
     }
 
     public List<Map<String, Object>> readBatchUsersList(Request request, String batchId) {
-        Map<String, Object> filterMap = (Map<String, Object>) request.getRequest().getOrDefault(JsonKey.FILTERS,"");
-        Map<String, Object> filter = new HashMap<>();
-        filter.put(JsonKey.BATCH_ID,batchId);
-        filter.put(JsonKey.STATUS, filterMap.getOrDefault(JsonKey.STATUS,""));
-        filter.put(JsonKey.NAME,filterMap.getOrDefault(JsonKey.SEARCH,""));
+        Map<String, Object> search = (Map<String, Object>)request.getRequest().getOrDefault(JsonKey.FILTERS,"");
         Response response =
-                cassandraOperation.getRecordByIndexedPropertyPagination(batchUserDb.getKeySpace(), batchUserDb.getTableName(),filter,request);
+                cassandraOperation.getRecordByIndexedPropertyPagination(batchUserDb.getKeySpace(), batchUserDb.getTableName(),search,request);
         List<Map<String, Object>> courseUserList =
                 (List<Map<String, Object>>) response.get(JsonKey.RESPONSE);
         if (CollectionUtils.isEmpty(courseUserList)) {
@@ -79,13 +75,18 @@ public class BatchUserDaoImpl implements BatchUserDao {
     public Response update(RequestContext requestContext, String batchId, Map<String, Object> map) {
        logger.info(requestContext,"updating data based on batchId and return the response"+batchId);
         Map<String, Object> primaryKey = new HashMap<>();
-        primaryKey.put(JsonKey.BATCH_ID, batchId);
+        primaryKey.put(JsonKey.BATCH_ID_KEY, batchId);
         Map<String, Object> attributeMap = new HashMap<>();
         attributeMap.putAll(map);
-        attributeMap.remove(JsonKey.BATCH_ID);
+        attributeMap.remove(JsonKey.BATCH_ID_KEY);
         attributeMap = CassandraUtil.changeCassandraColumnMapping(attributeMap);
         logger.info(requestContext,"changing cassdra cloumnmapping and asign to attributeMap"+attributeMap);
         return cassandraOperation.updateRecord(
                 requestContext, batchUserDb.getKeySpace(), batchUserDb.getTableName(), attributeMap, primaryKey);
+    }
+
+    public Response delete(RequestContext requestContext, String batchid) {
+        return cassandraOperation.deleteRecordBatchId(
+                batchUserDb.getKeySpace(), batchUserDb.getTableName(), batchid, requestContext);
     }
 }

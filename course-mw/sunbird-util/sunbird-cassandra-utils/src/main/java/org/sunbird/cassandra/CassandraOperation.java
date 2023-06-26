@@ -59,6 +59,12 @@ public interface CassandraOperation {
    */
   public Response deleteRecord(String keyspaceName, String tableName, String identifier, RequestContext requestContext);
 
+
+  public Response deleteRecordBatchId(String keyspaceName, String tableName, String identifier, RequestContext requestContext);
+
+
+  public Response deleteRecordCourseId(String keyspaceName, String tableName, String identifier, RequestContext requestContext);
+
     Response getRecordByIndexedPropertyPagination(
             String keyspaceName, String tableName, Map<String, Object> params, Request request);
 
