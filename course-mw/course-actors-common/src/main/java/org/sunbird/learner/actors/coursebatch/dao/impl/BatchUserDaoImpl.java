@@ -49,6 +49,7 @@ public class BatchUserDaoImpl implements BatchUserDao {
 
     public List<Map<String, Object>> readBatchUsersList(Request request, String batchId) {
         Map<String, Object> search = (Map<String, Object>)request.getRequest().getOrDefault(JsonKey.FILTERS,"");
+        search.put(JsonKey.BATCH_ID,batchId);
         Response response =
                 cassandraOperation.getRecordByIndexedPropertyPagination(batchUserDb.getKeySpace(), batchUserDb.getTableName(),search,request);
         List<Map<String, Object>> courseUserList =

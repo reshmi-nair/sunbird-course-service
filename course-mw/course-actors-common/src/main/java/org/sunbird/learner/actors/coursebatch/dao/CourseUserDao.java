@@ -48,4 +48,12 @@ public interface CourseUserDao {
      */
     List<Map<String, Object>> readCourseUsersList(Request request, String courseId);
 
+    /**
+     * Deleted batch user.
+     *
+     * @param  courseId user information to be updated
+     * @return Response containing status of batch user delete
+     */
+    Response delete(RequestContext requestContext, String courseId);
+
 }

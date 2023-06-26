@@ -584,6 +584,8 @@ public abstract class CassandraOperationImpl implements CassandraOperation {
         boolean isSearch = false;
         if(params.containsKey(JsonKey.SEARCH)) {
           isSearch = (Boolean) params.getOrDefault(JsonKey.SEARCH, false);
+          if(params.containsKey(JsonKey.BATCH_ID))
+          params.remove(JsonKey.BATCH_ID);
           params.remove(JsonKey.SEARCH);
         }
         Select.Where where = selectQuery.where();
