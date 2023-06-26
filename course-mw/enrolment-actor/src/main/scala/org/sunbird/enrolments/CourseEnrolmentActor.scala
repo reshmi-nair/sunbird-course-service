@@ -4,6 +4,7 @@ import akka.actor.ActorRef
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
+import org.elasticsearch.search.sort.SortOrder
 import org.sunbird.cache.util.RedisCacheUtil
 import org.sunbird.cassandra.CassandraOperation
 import org.sunbird.common.CassandraUtil
@@ -119,8 +120,8 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
     validateEnrolment(batchData, enrolmentData, true)
     val data: java.util.Map[String, AnyRef] = createUserEnrolmentMap(userId, courseId, batchId, enrolmentData, request.getContext.getOrDefault(JsonKey.REQUEST_ID, "").asInstanceOf[String])
     logger.info(request.getRequestContext, "Data for enrol - " + data)
+    addCourseUserBatchData(request, courseId, batchId, batchData, userId)
     upsertEnrollment(userId, courseId, batchId, data, (null == enrolmentData), request.getRequestContext)
-    //addCourseUserBatchData(request, courseId, batchId, batchData, userId)
     logger.info(request.getRequestContext, "CourseEnrolmentActor :: enroll :: Deleting redis for key " + getCacheKey(userId))
     cacheUtil.delete(getCacheKey(userId))
     //sender().tell(successResponse(), self)
@@ -151,6 +152,7 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
         }
       }
     }
+    deleteUserCourseBatchData(request, courseId, batchId)
     upsertEnrollment(userId, courseId, batchId, data, false, request.getRequestContext)
     logger.info(request.getRequestContext, "CourseEnrolmentActor :: unEnroll :: Deleting redis for key " + getCacheKey(userId))
     cacheUtil.delete(getCacheKey(userId))
@@ -159,6 +161,16 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
     notifyUser(userId, batchData, JsonKey.REMOVE)
   }
 
+  def deleteUserCourseBatchData(request: Request, courseId: String, batchId: String): Unit = {
+    val courseUserData: CourseUser = courseUserDao.readById(request.getRequestContext, courseId)
+    val batchUserData: BatchUser = batchUserDao.readById(request.getRequestContext, batchId)
+    logger.info(request.getRequestContext, "fetching data in course_user_mapping and batch_user_mapping")
+    if (courseUserData.getUserId != null || batchUserData.getUserId != null) {
+      batchUserDao.delete(request.getRequestContext, batchId)
+      courseUserDao.delete(request.getRequestContext, courseId)
+    }
+
+  }
 
   def bulkUnEnroll(request: Request): Unit = {
     val courseId: String = request.get(JsonKey.COURSE_ID).asInstanceOf[String]
@@ -435,18 +447,27 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
   }
 
   def courseBatchUserList(request: Request): Unit = {
-    val courseId = request.get(JsonKey.COURSE_ID).asInstanceOf[String]
     val batchId = request.get(JsonKey.BATCH_ID).asInstanceOf[String]
-    val userList: util.List[util.Map[String, AnyRef]] = courseUserDao.readCourseUsersList(request, courseId)
+    val sortBy = request.get(JsonKey.SORT_BY).asInstanceOf[util.Map[String, AnyRef]]
     val batchList: util.List[util.Map[String, AnyRef]] = batchUserDao.readBatchUsersList(request, batchId)
-    val courseBatchUserList:util.List[util.List[util.Map[String, AnyRef]]]=new java.util.ArrayList[java.util.List[java.util.Map[String, AnyRef]]]()
-    courseBatchUserList.add(userList)
-    //courseBatchUserList.add(batchList)
-    // assuming the batch id belongs to the same course
-    //val userMap:util.List[util.List[util.Map[String, AnyRef]]]=new java.util.ArrayList[java.util.List[java.util.Map[String, AnyRef]]]();
+    var sortedList: util.List[util.Map[String, AnyRef]] = null;
+    if (CollectionUtils.isNotEmpty(batchList) && sortBy != null) {
+      val sortKey = sortBy.keySet.stream.findFirst.get
+      val sortOrder = sortBy.entrySet.stream.findFirst.get.getValue.asInstanceOf[String]
+      sortedList = Util.sortMapByKey(batchList, sortKey, JsonKey.COURSE_ENROLL_DATE, sortOrder)
+      logger.debug(null, "sorted map val : " + sortedList)
+    } else {
+      sortedList = Util.sortMapByKey(batchList, null, JsonKey.COURSE_ENROLL_DATE, SortOrder.DESC.name.toLowerCase)
+    }
+    if (CollectionUtils.isEmpty(sortedList)) {
+      sortedList = new util.ArrayList[util.Map[String, AnyRef]]
+    }
     val response = new Response
-    response.getResult.put(JsonKey.RESPONSE, courseBatchUserList)
-    sender().tell(response, self)
+    val result: util.HashMap[String, AnyRef] = new util.HashMap[String, AnyRef]
+    result.put(JsonKey.COUNT, sortedList.size.toString)
+    result.put(JsonKey.PARTICIPANTS, sortedList)
+    response.put(JsonKey.BATCH, result)
+    sender.tell(response, self)
   }
 
   def upsertCourseBatchUser(userId: String, batchId: String, dataBatch: java.util.Map[String, AnyRef], courseId: String, dataCourse: java.util.Map[String, AnyRef], isNew: Boolean, requestContext: RequestContext): Unit = {
