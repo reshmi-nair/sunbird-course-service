@@ -424,9 +424,10 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
     logger.info(request.getRequestContext, "checking the condition if userId is exist fetch the firstname and lastname from userData")
     if (userId.equalsIgnoreCase(userData.get(JsonKey.USER_ID).toString)) {
       var firstname = userData.get(JsonKey.FIRST_NAME).toString
-      var lastname = userData.getOrDefault(JsonKey.LAST_NAME,"").toString
-      if(!lastname.isBlank) {
-        userName = firstname.concat(" ").concat(lastname)
+      val lastNameValue = userData.get(JsonKey.LAST_NAME)
+      val lastName = if (lastNameValue != null) lastNameValue.toString else ""
+      if(!lastName.isBlank) {
+        userName = firstname.concat(" ").concat(lastName)
       }else{
         userName=firstname;
       }
