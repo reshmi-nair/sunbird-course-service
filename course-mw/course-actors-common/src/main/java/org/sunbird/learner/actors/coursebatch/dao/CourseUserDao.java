@@ -28,7 +28,7 @@ public interface CourseUserDao {
      * @param requestContext
      * @return User courses information
      */
-    CourseUser readById(RequestContext requestContext, String courseId);
+    CourseUser readById(RequestContext requestContext, String courseId,String userId);
 
 
     /**
@@ -37,7 +37,7 @@ public interface CourseUserDao {
      * @param courseUserMap Course user information to be updated
      * @return Response containing status of courseUser update
      */
-    Response update(RequestContext requestContext, String courseId, Map<String, Object> courseUserMap);
+    Response update(RequestContext requestContext, String courseId,String userId, Map<String, Object> courseUserMap);
 
     /**
      * Get course user information.
