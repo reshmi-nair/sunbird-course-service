@@ -163,7 +163,7 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
   }
 
   def deleteUserCourseBatchData(request: Request, courseId: String, batchId:String ,userId:String): Unit = {
-    val courseUserData: CourseUser = courseUserDao.readById(request.getRequestContext, courseId)
+    val courseUserData: CourseUser = courseUserDao.readById(request.getRequestContext, courseId,userId)
     val batchUserData: BatchUser = batchUserDao.readById(request.getRequestContext, batchId,userId)
     logger.info(request.getRequestContext, "fetching data in course_user_mapping and batch_user_mapping")
     if (courseUserData.getUserId != null || batchUserData.getUserId != null) {
@@ -416,7 +416,7 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
   }
 
   def addCourseUserBatchData(request: Request, courseId: String, batchId: String, batchData: CourseBatch, userId: String): Unit = {
-    val courseUserData: CourseUser = courseUserDao.readById(request.getRequestContext, courseId)
+    val courseUserData: CourseUser = courseUserDao.readById(request.getRequestContext, courseId,userId)
     val batchUserData: BatchUser = batchUserDao.readById(request.getRequestContext, batchId,userId)
     logger.info(request.getRequestContext, "fetching the userData from the sunbird.user table base on userId" + userId + "auth token")
     val userData: util.Map[String, AnyRef] = userOrgService.getUserById(userId,  request.getContext.getOrDefault(JsonKey.X_AUTH_TOKEN, "").asInstanceOf[String])
@@ -482,8 +482,8 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
       courseUserDao.insert(requestContext, dataCourseMap)
 
     } else {
-      batchUserDao.update(requestContext, batchId, dataMap)
-      courseUserDao.update(requestContext, courseId, dataCourseMap)
+      batchUserDao.update(requestContext, batchId, userId,dataMap)
+      courseUserDao.update(requestContext, courseId, userId,dataCourseMap)
     }
   }
 

@@ -44,10 +44,11 @@ public class CourseUserDaoImpl implements CourseUserDao {
      * @return User courses information
      */
     @Override
-    public CourseUser readById(RequestContext requestContext, String courseId) {
+    public CourseUser readById(RequestContext requestContext, String courseId,String userId) {
         logger.info(requestContext,"fetching data based on courseId "+courseId);
         Map<String, Object> primaryKey = new HashMap<>();
         primaryKey.put(JsonKey.COURSE_ID_KEY, courseId);
+        primaryKey.put(JsonKey.USER_ID_KEY, userId);
         Response response = cassandraOperation.getRecordByIdentifier(requestContext, courseUserDb.getKeySpace(), courseUserDb.getTableName(), primaryKey, null);
         List<Map<String, Object>> CourseUserList =
                 (List<Map<String, Object>>) response.get(JsonKey.RESPONSE);
@@ -68,13 +69,15 @@ public class CourseUserDaoImpl implements CourseUserDao {
      * @return Response containing status of courseUser update
      */
     @Override
-    public Response update(RequestContext requestContext, String courseId, Map<String, Object> map) {
+    public Response update(RequestContext requestContext, String courseId,String userId, Map<String, Object> map) {
         logger.info(requestContext,"updating data based on courseId and return the response"+courseId);
         Map<String, Object> primaryKey = new HashMap<>();
         primaryKey.put(JsonKey.COURSE_ID_KEY, courseId);
+        primaryKey.put(JsonKey.USER_ID, userId);
         Map<String, Object> attributeMap = new HashMap<>();
         attributeMap.putAll(map);
         attributeMap.remove(JsonKey.COURSE_ID_KEY);
+        attributeMap.remove(JsonKey.USER_ID_KEY);
         attributeMap = CassandraUtil.changeCassandraColumnMapping(attributeMap);
         logger.info(requestContext,"changing cassdra cloumnmapping and asign to attributeMap"+attributeMap);
         return cassandraOperation.updateRecord(

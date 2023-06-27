@@ -33,7 +33,7 @@ public class BatchUserDaoImpl implements BatchUserDao {
 
         Map<String, Object> primaryKey = new HashMap<>();
         primaryKey.put(JsonKey.BATCH_ID_KEY, batchId);
-        primaryKey.put(JsonKey.USER_ID, userId);
+        primaryKey.put(JsonKey.USER_ID_KEY, userId);
         Response response = cassandraOperation.getRecordByIdentifier(requestContext, batchUserDb.getKeySpace(), batchUserDb.getTableName(), primaryKey, null);
         List<Map<String, Object>> batchUserList =
                 (List<Map<String, Object>>) response.get(JsonKey.RESPONSE);
@@ -74,13 +74,16 @@ public class BatchUserDaoImpl implements BatchUserDao {
      * @return Response containing status of batch user update
      */
     @Override
-    public Response update(RequestContext requestContext, String batchId, Map<String, Object> map) {
+    public Response update(RequestContext requestContext, String batchId, String userId,Map<String, Object> map) {
        logger.info(requestContext,"updating data based on batchId and return the response"+batchId);
         Map<String, Object> primaryKey = new HashMap<>();
         primaryKey.put(JsonKey.BATCH_ID_KEY, batchId);
+        primaryKey.put(JsonKey.USER_ID_KEY, userId);
+
         Map<String, Object> attributeMap = new HashMap<>();
         attributeMap.putAll(map);
         attributeMap.remove(JsonKey.BATCH_ID_KEY);
+        attributeMap.remove(JsonKey.USER_ID_KEY);
         attributeMap = CassandraUtil.changeCassandraColumnMapping(attributeMap);
         logger.info(requestContext,"changing cassdra cloumnmapping and asign to attributeMap"+attributeMap);
         return cassandraOperation.updateRecord(
