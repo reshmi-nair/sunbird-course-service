@@ -647,6 +647,19 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
          val statusCode: Integer = request.getOrDefault(JsonKey.STATUS, 0).asInstanceOf[Integer]
          val nodalFeedback:util.Map[String,String]=new util.HashMap[String,String]()
          nodalFeedback.put(getUserRole(request.getContext.getOrDefault(JsonKey.REQUESTED_BY, "").asInstanceOf[String]),comment)
+         (0 until (userIds.size())).foreach(x => {
+           val enrolmentData: UserCourses = userCoursesDao.read(request.getRequestContext, userIds.get(x.toInt), courseId, batchId)
+           if (enrolmentData.getComment != null && !enrolmentData.getComment.isEmpty) {
+              logger.info(null,"existing comment"+ enrolmentData.getComment)
+               val userRole = getUserRole(request.getContext.getOrDefault(JsonKey.REQUESTED_BY, "").asInstanceOf[String])
+              if(!comment.isBlank) {
+                if(enrolmentData.getComment.containsKey(userRole)) {
+                  enrolmentData.getComment.remove(userRole)
+                  nodalFeedback.putAll(enrolmentData.getComment)
+                }
+              }
+           }
+         })
          // creating request map
          val map: _root_.java.util.HashMap[_root_.java.lang.String, _root_.java.lang.Object] = createCourseEvalRequestMap(nodalFeedback,statusCode)
          // creating cassandra column map
