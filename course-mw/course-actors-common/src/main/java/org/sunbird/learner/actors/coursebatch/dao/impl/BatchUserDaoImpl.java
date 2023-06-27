@@ -29,10 +29,11 @@ public class BatchUserDaoImpl implements BatchUserDao {
     public LoggerUtil logger = new LoggerUtil(this.getClass());
 
     @Override
-    public BatchUser readById(RequestContext requestContext, String batchId) {
+    public BatchUser readById(RequestContext requestContext, String batchId,String userId) {
 
         Map<String, Object> primaryKey = new HashMap<>();
         primaryKey.put(JsonKey.BATCH_ID_KEY, batchId);
+        primaryKey.put(JsonKey.USER_ID, userId);
         Response response = cassandraOperation.getRecordByIdentifier(requestContext, batchUserDb.getKeySpace(), batchUserDb.getTableName(), primaryKey, null);
         List<Map<String, Object>> batchUserList =
                 (List<Map<String, Object>>) response.get(JsonKey.RESPONSE);

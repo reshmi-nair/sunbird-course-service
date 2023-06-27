@@ -12,7 +12,7 @@ public interface BatchUserDao {
 
 
 
-    BatchUser readById(RequestContext requestContext, String batchId);
+    BatchUser readById(RequestContext requestContext, String batchId,String userId);
 
     /**
      * Create an entry for  user batch information

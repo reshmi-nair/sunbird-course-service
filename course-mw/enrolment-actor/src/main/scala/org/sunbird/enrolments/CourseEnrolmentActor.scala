@@ -2,6 +2,7 @@ package org.sunbird.enrolments
 
 import akka.actor.ActorRef
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.mashape.unirest.http.HttpClientHelper.request
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.elasticsearch.search.sort.SortOrder
@@ -152,7 +153,7 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
         }
       }
     }
-    deleteUserCourseBatchData(request, courseId, batchId)
+    deleteUserCourseBatchData(request, courseId, batchId,userId)
     upsertEnrollment(userId, courseId, batchId, data, false, request.getRequestContext)
     logger.info(request.getRequestContext, "CourseEnrolmentActor :: unEnroll :: Deleting redis for key " + getCacheKey(userId))
     cacheUtil.delete(getCacheKey(userId))
@@ -161,9 +162,9 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
     notifyUser(userId, batchData, JsonKey.REMOVE)
   }
 
-  def deleteUserCourseBatchData(request: Request, courseId: String, batchId: String): Unit = {
+  def deleteUserCourseBatchData(request: Request, courseId: String, batchId:String ,userId:String): Unit = {
     val courseUserData: CourseUser = courseUserDao.readById(request.getRequestContext, courseId)
-    val batchUserData: BatchUser = batchUserDao.readById(request.getRequestContext, batchId)
+    val batchUserData: BatchUser = batchUserDao.readById(request.getRequestContext, batchId,userId)
     logger.info(request.getRequestContext, "fetching data in course_user_mapping and batch_user_mapping")
     if (courseUserData.getUserId != null || batchUserData.getUserId != null) {
       batchUserDao.delete(request.getRequestContext, batchId)
@@ -416,9 +417,9 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
 
   def addCourseUserBatchData(request: Request, courseId: String, batchId: String, batchData: CourseBatch, userId: String): Unit = {
     val courseUserData: CourseUser = courseUserDao.readById(request.getRequestContext, courseId)
-    val batchUserData: BatchUser = batchUserDao.readById(request.getRequestContext, batchId)
+    val batchUserData: BatchUser = batchUserDao.readById(request.getRequestContext, batchId,userId)
     logger.info(request.getRequestContext, "fetching the userData from the sunbird.user table base on userId" + userId + "auth token")
-    val userData: util.Map[String, AnyRef] = userOrgService.getUserById(userId, request.getContext.getOrDefault(JsonKey.X_AUTH_TOKEN, "").asInstanceOf[String])
+    val userData: util.Map[String, AnyRef] = userOrgService.getUserById(userId,  request.getContext.getOrDefault(JsonKey.X_AUTH_TOKEN, "").asInstanceOf[String])
     var userName: String = null
     logger.info(request.getRequestContext, "checking the condition if userId is exist fetch the firstname and lastname from userData")
     if (userId.equalsIgnoreCase(userData.get(JsonKey.USER_ID).toString)) {
@@ -426,9 +427,12 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
       var lastname = userData.getOrDefault(JsonKey.LAST_NAME,"").toString
       if(!lastname.isBlank) {
         userName = firstname.concat(" ").concat(lastname)
+      }else{
+        userName=firstname;
       }
+
     }
-    val comment: String = request.getOrDefault(JsonKey.COMMENT, "").asInstanceOf[String]
+    val comment: util.Map[String,String] = request.get(JsonKey.COMMENT).asInstanceOf[util.Map[String,String]]
     val dataBatch: util.Map[String, AnyRef] = createBatchUserMapping(batchId, userId, batchData, userName, comment)
     val dataCourse: util.Map[String, AnyRef] = createCourseUserMapping(courseId, userId, batchData, userName, comment)
     upsertCourseBatchUser(userId, batchId, dataBatch, courseId, dataCourse, (null == courseUserData || null == batchUserData), request.getRequestContext)
@@ -503,7 +507,7 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
       }
     }
 
-  def createBatchUserMapping(batchId: String, userId: String, batchData: CourseBatch, userName: String, comment: String): java.util.Map[String, AnyRef] =
+  def createBatchUserMapping(batchId: String, userId: String, batchData: CourseBatch, userName: String, comment: util.Map[String,String]): java.util.Map[String, AnyRef] =
     new java.util.HashMap[String, AnyRef]() {
       var courseName: String = null
       if (batchId.equalsIgnoreCase(batchData.getBatchId)) {
@@ -521,7 +525,7 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
       }
     }
 
-  def createCourseUserMapping(courseId: String, userId: String, batchData: CourseBatch, userName: String, comment: String): java.util.Map[String, AnyRef] =
+  def createCourseUserMapping(courseId: String, userId: String, batchData: CourseBatch, userName: String, comment: util.Map[String,String]): java.util.Map[String, AnyRef] =
     new java.util.HashMap[String, AnyRef]() {
       var courseName: String = null
       if (courseId.equalsIgnoreCase(batchData.getCourseId)) {
