@@ -77,8 +77,8 @@ public class BatchUserDaoImpl implements BatchUserDao {
     public Response update(RequestContext requestContext, String batchId, String userId,Map<String, Object> map) {
        logger.info(requestContext,"updating data based on batchId and return the response"+batchId);
         Map<String, Object> primaryKey = new HashMap<>();
-        primaryKey.put(JsonKey.BATCH_ID_KEY, batchId);
         primaryKey.put(JsonKey.USER_ID_KEY, userId);
+        primaryKey.put(JsonKey.BATCH_ID_KEY, batchId);
 
         Map<String, Object> attributeMap = new HashMap<>();
         attributeMap.putAll(map);

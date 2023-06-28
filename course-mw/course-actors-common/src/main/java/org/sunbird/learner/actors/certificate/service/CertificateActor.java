@@ -18,11 +18,13 @@ import org.sunbird.common.request.Request;
 import org.sunbird.common.responsecode.ResponseCode;
 import org.sunbird.helper.ServiceFactory;
 import org.sunbird.kafka.client.InstructionEventGenerator;
+import org.sunbird.learner.actors.coursebatch.dao.impl.BatchUserDaoImpl;
 import org.sunbird.learner.actors.coursebatch.dao.impl.UserCoursesDaoImpl;
 import org.sunbird.learner.constants.CourseJsonKey;
 import org.sunbird.learner.constants.InstructionEvent;
 import org.sunbird.learner.util.CourseBatchUtil;
 import org.sunbird.learner.util.Util;
+import org.sunbird.models.batch.user.BatchUser;
 import org.sunbird.models.user.courses.UserCourses;
 
 public class CertificateActor extends BaseActor {
@@ -109,6 +111,7 @@ public class CertificateActor extends BaseActor {
     Integer statusCode = (Integer) request.getOrDefault(JsonKey.STATUS, 0);
     for (int x = 0; x < userIds.size(); x++) {
       UserCoursesDaoImpl userCoursesDao=new UserCoursesDaoImpl();
+      EvalStatus(request,userIds.get(x),batchId,"",statusCode);
       UserCourses enrolmentData = userCoursesDao.read(request.getRequestContext(), userIds.get(x), courseId, batchId);
       logger.info(request.getRequestContext(),"checking enrolment Data"+enrolmentData);
       if (enrolmentData.getComment() != null) {
@@ -160,6 +163,22 @@ public class CertificateActor extends BaseActor {
       }
     }
     return false;
+  }
+
+  private void EvalStatus(Request request,String userId,String batchId,String comment,Integer status) {
+    BatchUserDaoImpl batchUserDao=new BatchUserDaoImpl();
+    BatchUser batchUserData = batchUserDao.readById(request.getRequestContext(), userId, batchId);
+    if (batchUserData.getComment() != null) {
+      batchUserData.getComment().put(getUserRole(request.getContext().getOrDefault(JsonKey.REQUESTED_BY, "").toString()), "");
+      logger.info(request.getRequestContext(),"checking comment from enrolment"+batchUserData.getComment());
+      // creating request map
+      HashMap<String, Object> map =(HashMap<String, Object>) createCourseEvalRequestMap(batchUserData.getComment(), status);
+      logger.info(null,"checking map"+map);
+      // creating cassandra column map
+      HashMap<String, Object> data = (HashMap<String, Object>) CassandraUtil.changeCassandraColumnMapping(map);
+      logger.info(null,"data "+data);
+      batchUserDao.update(request.getRequestContext(), userId, batchId, data);
+    }
   }
 
   /**
