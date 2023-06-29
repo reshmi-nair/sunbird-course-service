@@ -82,8 +82,8 @@ public class BatchUserDaoImpl implements BatchUserDao {
 
         Map<String, Object> attributeMap = new HashMap<>();
         attributeMap.putAll(map);
-        attributeMap.remove(JsonKey.BATCH_ID_KEY);
         attributeMap.remove(JsonKey.USER_ID_KEY);
+        attributeMap.remove(JsonKey.BATCH_ID_KEY);
         attributeMap = CassandraUtil.changeCassandraColumnMapping(attributeMap);
         logger.info(requestContext,"changing cassdra cloumnmapping and asign to attributeMap"+attributeMap);
         return cassandraOperation.updateRecord(
