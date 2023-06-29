@@ -455,6 +455,7 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
     val batchId = request.get(JsonKey.BATCH_ID).asInstanceOf[String]
     val sortBy = request.get(JsonKey.SORT_BY).asInstanceOf[util.Map[String, AnyRef]]
     val batchList: util.List[util.Map[String, AnyRef]] = batchUserDao.readBatchUsersList(request, batchId)
+    logger.debug(null, "batchList val : " + batchList)
     var sortedList: util.List[util.Map[String, AnyRef]] = null;
     if (CollectionUtils.isNotEmpty(batchList) && sortBy != null) {
       val sortKey = sortBy.keySet.stream.findFirst.get
@@ -676,26 +677,29 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
          nodalFeedback.put(getUserRole(request.getContext.getOrDefault(JsonKey.REQUESTED_BY, "").asInstanceOf[String]),comment)
          (0 until (userIds.size())).foreach(x => {
            val enrolmentData: UserCourses = userCoursesDao.read(request.getRequestContext, userIds.get(x.toInt), courseId, batchId)
-           if (enrolmentData.getComment != null && !enrolmentData.getComment.isEmpty) {
-              logger.info(null,"existing comment"+ enrolmentData.getComment)
-               val userRole = getUserRole(request.getContext.getOrDefault(JsonKey.REQUESTED_BY, "").asInstanceOf[String])
-              if(!comment.isBlank) {
-                if(enrolmentData.getComment.containsKey(userRole)) {
-                  enrolmentData.getComment.remove(userRole)
-                  nodalFeedback.putAll(enrolmentData.getComment)
-                  logger.info(null, "update comments - "+ nodalFeedback)
-                }
-              }
+           val batchUserData: BatchUser = batchUserDao.readById(request.getRequestContext, batchId, userIds.get(x))
+           if ((enrolmentData.getComment != null && !enrolmentData.getComment.isEmpty)||(batchUserData.getComment != null && !batchUserData.getComment.isEmpty)) {
+             logger.info(null, "existing comment" + enrolmentData.getComment)
+             val userRole = getUserRole(request.getContext.getOrDefault(JsonKey.REQUESTED_BY, "").asInstanceOf[String])
+             if (nodalFeedback.containsKey(request.getContext.get(JsonKey.REQUESTED_BY))) {
+               enrolmentData.getComment.put(userRole, nodalFeedback.get(request.getContext.get(JsonKey.REQUESTED_BY)))
+               batchUserData.getComment.put(userRole, nodalFeedback.get(request.getContext.get(JsonKey.REQUESTED_BY)))
+               logger.info(null, "batchUserData comment:  " + batchUserData.getComment)
+             }
+             val map: _root_.java.util.HashMap[_root_.java.lang.String, _root_.java.lang.Object] = createCourseEvalRequestMap(enrolmentData.getComment, statusCode)
+             val data = CassandraUtil.changeCassandraColumnMapping(map)
+             batchUserDao.update(request.getRequestContext, batchId, userIds.get(x.toInt), data)
+             userCoursesDao.updateV2(request.getRequestContext, userIds.get(x), courseId, batchId, data)
            }
          })
-         // creating request map
+       // creating request map
          val map: _root_.java.util.HashMap[_root_.java.lang.String, _root_.java.lang.Object] = createCourseEvalRequestMap(nodalFeedback,statusCode)
          // creating cassandra column map
          val data = CassandraUtil.changeCassandraColumnMapping(map)
-       logger.info(null, "data map - "+ data)
+         logger.info(null, "data map - "+ data)
          // collecting response
          (0 until(userIds.size())).foreach(x => {
-           batchUserDao.update(request.getRequestContext, userIds.get(x.toInt), batchId, data)
+           batchUserDao.update(request.getRequestContext, batchId, userIds.get(x.toInt), data)
            userCoursesDao.updateV2(request.getRequestContext, userIds.get(x.toInt), courseId, batchId, data)
          })
          sender().tell(successResponse(), self)
@@ -712,6 +716,7 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
         (0 until (userIds.size())).foreach(x => {
           EvalStatus(request, userIds.get(x),batchId,comment,statusCode)
           val enrolmentData: UserCourses = userCoursesDao.read(request.getRequestContext, userIds.get(x.toInt), courseId, batchId)
+          logger.info(null, "existing enrolmentData" + enrolmentData)
           if(enrolmentData.getComment!=null) {
             enrolmentData.getComment.put(getUserRole(request.getContext.getOrDefault(JsonKey.REQUESTED_BY, "").asInstanceOf[String]), comment)
             // creating request map
@@ -725,14 +730,15 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
     }
 
   def EvalStatus(request: Request,userId:String,batchId:String,comment:String,status:Integer): Unit = {
-    val batchUserData: BatchUser = batchUserDao.readById(request.getRequestContext, userId, batchId)
+    val batchUserData: BatchUser = batchUserDao.readById(request.getRequestContext, batchId, userId)
+    logger.info(null, "getting batchUserData" + batchUserData)
     if (batchUserData.getComment != null) {
       batchUserData.getComment.put(getUserRole(request.getContext.getOrDefault(JsonKey.REQUESTED_BY, "").asInstanceOf[String]), comment)
       // creating request map
       val map: _root_.java.util.HashMap[_root_.java.lang.String, _root_.java.lang.Object] = createCourseEvalRequestMap(batchUserData.getComment, status)
       // creating cassandra column map
       val data = CassandraUtil.changeCassandraColumnMapping(map)
-      batchUserDao.update(request.getRequestContext,userId, batchId, data)
+      batchUserDao.update(request.getRequestContext, batchId,userId,data)
 
     }
   }

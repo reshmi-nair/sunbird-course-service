@@ -167,7 +167,7 @@ public class CertificateActor extends BaseActor {
 
   private void EvalStatus(Request request,String userId,String batchId,String comment,Integer status) {
     BatchUserDaoImpl batchUserDao=new BatchUserDaoImpl();
-    BatchUser batchUserData = batchUserDao.readById(request.getRequestContext(), userId, batchId);
+    BatchUser batchUserData = batchUserDao.readById(request.getRequestContext(), batchId, userId);
     if (batchUserData.getComment() != null) {
       batchUserData.getComment().put(getUserRole(request.getContext().getOrDefault(JsonKey.REQUESTED_BY, "").toString()), "");
       logger.info(request.getRequestContext(),"checking comment from enrolment"+batchUserData.getComment());
@@ -177,7 +177,7 @@ public class CertificateActor extends BaseActor {
       // creating cassandra column map
       HashMap<String, Object> data = (HashMap<String, Object>) CassandraUtil.changeCassandraColumnMapping(map);
       logger.info(null,"data "+data);
-      batchUserDao.update(request.getRequestContext(), userId, batchId, data);
+      batchUserDao.update(request.getRequestContext(), batchId,userId, data);
     }
   }
 
