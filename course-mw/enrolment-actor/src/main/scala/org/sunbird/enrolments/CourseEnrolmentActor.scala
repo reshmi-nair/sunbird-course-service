@@ -676,38 +676,50 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
          val nodalFeedback:util.Map[String,String]=new util.HashMap[String,String]()
          nodalFeedback.put(getUserRole(request.getContext.getOrDefault(JsonKey.REQUESTED_BY, "").asInstanceOf[String]),comment)
          (0 until (userIds.size())).foreach(x => {
-           val enrolmentData: UserCourses = userCoursesDao.read(request.getRequestContext, userIds.get(x.toInt), courseId, batchId)
-           val batchUserData: BatchUser = batchUserDao.readById(request.getRequestContext, batchId, userIds.get(x))
-           logger.info(null, "existing comment" + enrolmentData.getComment)
-           if ((enrolmentData.getComment != null && !enrolmentData.getComment.isEmpty)||(batchUserData.getComment != null && !batchUserData.getComment.isEmpty)) {
-             logger.info(null, "comment: " + enrolmentData.getComment)
-             val userRole = getUserRole(request.getContext.getOrDefault(JsonKey.REQUESTED_BY, "").asInstanceOf[String])
-             if (nodalFeedback.containsKey(userRole)) {
-               logger.info(null, "userRole: " + userRole)
-               val nodalComment = nodalFeedback.get(userRole)
-               // Add nodal comment to enrolmentData.getComment if userRole exists as key
-               if (enrolmentData.getComment.containsKey(userRole)) {
-                 val existingComment = enrolmentData.getComment.get(userRole)
-                 if (existingComment.isEmpty) enrolmentData.getComment.put(userRole, nodalComment)
-               }
-               // Add nodal comment to batchUserData.getComment if userRole exists as key
-               if (batchUserData.getComment.containsKey(userRole)) {
-                 val existingComment = batchUserData.getComment.get(userRole)
-                 if (existingComment.isEmpty) batchUserData.getComment.put(userRole, nodalComment)
-               }
-             }
-           }else {
-             val map: _root_.java.util.HashMap[_root_.java.lang.String, _root_.java.lang.Object]= createCourseEvalRequestMap(nodalFeedback, statusCode)
-             val data  = CassandraUtil.changeCassandraColumnMapping(map)
-             logger.info(null, "data--- " + data)
-             batchUserDao.update(request.getRequestContext, batchId, userIds.get(x.toInt), data)
-             userCoursesDao.updateV2(request.getRequestContext, userIds.get(x), courseId, batchId, data)
-           }
+           EvalDataAfterIssueCertificate(request, courseId, userIds, batchId, statusCode, nodalFeedback, x)
          })
          sender().tell(successResponse(), self)
     }
 
-    def notIssueCertificate(request: Request): Unit = {
+  private def EvalDataAfterIssueCertificate(request: Request, courseId: String, userIds: util.List[String], batchId: String, statusCode: Integer, nodalFeedback: util.Map[String, String], x: Int) = {
+    val enrolmentData: UserCourses = userCoursesDao.read(request.getRequestContext, userIds.get(x.toInt), courseId, batchId)
+    val batchUserData: BatchUser = batchUserDao.readById(request.getRequestContext, batchId, userIds.get(x))
+    logger.info(null, "existing comment" + enrolmentData.getComment)
+    if ((enrolmentData.getComment != null && !enrolmentData.getComment.isEmpty) || (batchUserData.getComment != null && !batchUserData.getComment.isEmpty)) {
+      logger.info(null, "comment: " + enrolmentData.getComment)
+      val userRole = getUserRole(request.getContext.getOrDefault(JsonKey.REQUESTED_BY, "").asInstanceOf[String])
+      if (nodalFeedback.containsKey(userRole)) {
+        logger.info(null, "userRole: " + userRole)
+        val nodalComment = nodalFeedback.get(userRole)
+        // Add nodal comment to enrolmentData.getComment if userRole exists as key
+        if (enrolmentData.getComment.containsKey(userRole)) {
+          val existingComment = enrolmentData.getComment.get(userRole)
+          if (existingComment.isEmpty) enrolmentData.getComment.put(userRole, nodalComment)
+        }
+        // Add nodal comment to batchUserData.getComment if userRole exists as key
+        if (batchUserData.getComment.containsKey(userRole)) {
+          val existingComment = batchUserData.getComment.get(userRole)
+          if (existingComment.isEmpty) batchUserData.getComment.put(userRole, nodalComment)
+        }
+        saveUserEnrolmentComment(request, courseId, userIds, batchId, statusCode, x, enrolmentData.getComment, batchUserData.getComment)
+      }
+    } else {
+      saveUserEnrolmentComment(request, courseId, userIds, batchId, statusCode, x, nodalFeedback, nodalFeedback)
+    }
+  }
+
+  private def saveUserEnrolmentComment(request: Request, courseId: String, userIds: util.List[String], batchId: String, statusCode: Integer, x: Int,
+                                       enrolmentDataComment: util.Map[String, String],
+                                       batchDataComment: util.Map[String, String]) = {
+    val map: util.HashMap[String, Object] = createCourseEvalRequestMap(enrolmentDataComment, statusCode)
+    val batchMap: util.HashMap[String, Object] = createCourseEvalRequestMap(batchDataComment, statusCode)
+    val data = CassandraUtil.changeCassandraColumnMapping(map)
+    val batchdata = CassandraUtil.changeCassandraColumnMapping(batchMap)
+    batchUserDao.update(request.getRequestContext, batchId, userIds.get(x.toInt), batchdata)
+    userCoursesDao.updateV2(request.getRequestContext, userIds.get(x), courseId, batchId, data)
+  }
+
+  def notIssueCertificate(request: Request): Unit = {
         logger.info(request.getRequestContext, "Actor current thread reaching actor method notIssueCertificate - " + Thread.currentThread().getId());
         val courseId: String = request.get(JsonKey.COURSE_ID).asInstanceOf[String]
         val userIds: util.List[String] = request.get(JsonKey.USER_IDs).asInstanceOf[util.List[String]]
