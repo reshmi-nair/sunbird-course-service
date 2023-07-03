@@ -50,15 +50,18 @@ public class BatchUserDaoImpl implements BatchUserDao {
 
     public List<Map<String, Object>> readBatchUsersList(Request request, String batchId) {
         Map<String, Object> search = (Map<String, Object>)request.getRequest().getOrDefault(JsonKey.FILTERS,"");
+        logger.info(null, "search : " + search);
         search.put(JsonKey.BATCH_ID,batchId);
         Response response =
                 cassandraOperation.getRecordByIndexedPropertyPagination(batchUserDb.getKeySpace(), batchUserDb.getTableName(),search,request);
-        List<Map<String, Object>> courseUserList =
+        logger.info(null, "response from cassandraOperation : " + response);
+        List<Map<String, Object>> batchUserList =
                 (List<Map<String, Object>>) response.get(JsonKey.RESPONSE);
-        if (CollectionUtils.isEmpty(courseUserList)) {
+        if (CollectionUtils.isEmpty(batchUserList)) {
             return null;
         }
-        return courseUserList;
+        logger.info(null, "batchUserList : " + batchUserList);
+        return batchUserList;
 
     }
 

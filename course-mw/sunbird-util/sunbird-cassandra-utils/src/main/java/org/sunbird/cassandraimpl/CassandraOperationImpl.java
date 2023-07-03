@@ -583,6 +583,7 @@ public abstract class CassandraOperationImpl implements CassandraOperation {
       Select selectQuery = select().all().from(keyspaceName, tableName);
       if (MapUtils.isNotEmpty(params)) {
         boolean isSearch = false;
+        logger.info(null, "params have search : " + params);
         if(params.containsKey(JsonKey.SEARCH)) {
           isSearch = (Boolean) params.getOrDefault(JsonKey.SEARCH, false);
           if(params.containsKey(JsonKey.BATCH_ID))
@@ -590,6 +591,7 @@ public abstract class CassandraOperationImpl implements CassandraOperation {
           params.remove(JsonKey.SEARCH);
         }
         Select.Where where = selectQuery.where();
+        logger.info(null, "added where to query : " + where);
         for (Map.Entry<String, Object> filter : params.entrySet()) {
           Object value = filter.getValue();
           if(value!=""){
