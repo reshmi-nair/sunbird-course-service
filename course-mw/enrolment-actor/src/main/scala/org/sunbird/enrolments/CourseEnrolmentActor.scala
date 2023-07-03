@@ -454,16 +454,19 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
   def courseBatchUserList(request: Request): Unit = {
     val batchId = request.get(JsonKey.BATCH_ID).asInstanceOf[String]
     val sortBy = request.get(JsonKey.SORT_BY).asInstanceOf[util.Map[String, AnyRef]]
+    logger.info(null, "batchID : "+batchId+" "+"sortBy : " + sortBy)
     val batchList: util.List[util.Map[String, AnyRef]] = batchUserDao.readBatchUsersList(request, batchId)
     logger.debug(null, "batchList val : " + batchList)
     var sortedList: util.List[util.Map[String, AnyRef]] = null;
+    logger.info(null, "getting batchList from batchUserDao : " + batchList)
     if (CollectionUtils.isNotEmpty(batchList) && sortBy != null) {
       val sortKey = sortBy.keySet.stream.findFirst.get
       val sortOrder = sortBy.entrySet.stream.findFirst.get.getValue.asInstanceOf[String]
       sortedList = Util.sortMapByKey(batchList, sortKey, JsonKey.COURSE_ENROLL_DATE, sortOrder)
-      logger.debug(null, "sorted map val : " + sortedList)
+      logger.info(null, "CollectionUtil is not empty sorted map val : " + sortedList)
     } else {
       sortedList = Util.sortMapByKey(batchList, null, JsonKey.COURSE_ENROLL_DATE, SortOrder.DESC.name.toLowerCase)
+      logger.info(null, "If CollectionUtil is empty sortedList : " + batchList)
     }
     if (CollectionUtils.isEmpty(sortedList)) {
       sortedList = new util.ArrayList[util.Map[String, AnyRef]]
@@ -473,6 +476,7 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
     result.put(JsonKey.COUNT, sortedList.size.toString)
     result.put(JsonKey.PARTICIPANTS, sortedList)
     response.put(JsonKey.BATCH, result)
+    logger.debug(null, "response : " + response)
     sender.tell(response, self)
   }
 
