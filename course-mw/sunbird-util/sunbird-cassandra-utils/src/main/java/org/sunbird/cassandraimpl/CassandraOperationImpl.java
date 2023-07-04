@@ -602,7 +602,7 @@ public abstract class CassandraOperationImpl implements CassandraOperation {
             }else if(isSearch) {
               logger.debug(null,"search param "+filter.getKey());
               String option = filter.getValue().toString();
-              if (option.length() == 1) {
+              if (option.length() >=1) {
                 option += "%";
               }
               option = option.replace("\\", "\\\\").replace("_", "\\_");
