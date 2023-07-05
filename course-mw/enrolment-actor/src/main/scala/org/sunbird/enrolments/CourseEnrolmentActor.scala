@@ -691,7 +691,7 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
     logger.info(null, "existing comment" + enrolmentData.getComment)
     if ((enrolmentData.getComment != null && !enrolmentData.getComment.isEmpty) || (batchUserData.getComment != null && !batchUserData.getComment.isEmpty)) {
       logger.info(null, "comment: " + enrolmentData.getComment)
-      val userRole = getUserRole(request.getContext.getOrDefault(JsonKey.REQUESTED_BY, "").asInstanceOf[String])
+      val userRole = enrolmentData.getComment.keySet().head//getUserRole(request.getContext.getOrDefault(JsonKey.REQUESTED_BY, "").asInstanceOf[String])
       if (nodalFeedback.containsKey(userRole)) {
         logger.info(null, "userRole: " + userRole)
         val nodalComment = nodalFeedback.get(userRole)
