@@ -696,15 +696,10 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
         logger.info(null, "userRole: " + userRole)
         val nodalComment = nodalFeedback.get(userRole)
         // Add nodal comment to enrolmentData.getComment if userRole exists as key
-        if (enrolmentData.getComment.containsKey(userRole)) {
-          val existingComment = enrolmentData.getComment.get(userRole)
-          if (existingComment.isEmpty) enrolmentData.getComment.put(userRole, nodalComment)
-        }
+        if (!nodalComment.isEmpty) enrolmentData.getComment.put(userRole, nodalComment)
+
         // Add nodal comment to batchUserData.getComment if userRole exists as key
-        if (batchUserData.getComment.containsKey(userRole)) {
-          val existingComment = batchUserData.getComment.get(userRole)
-          if (existingComment.isEmpty) batchUserData.getComment.put(userRole, nodalComment)
-        }
+        if (!nodalComment.isEmpty) batchUserData.getComment.put(userRole, nodalComment)
         saveUserEnrolmentComment(request, courseId, userIds, batchId, statusCode, x, enrolmentData.getComment, batchUserData.getComment)
       }
     } else {
