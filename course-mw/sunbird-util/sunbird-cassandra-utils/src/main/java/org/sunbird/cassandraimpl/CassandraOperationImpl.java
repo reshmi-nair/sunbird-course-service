@@ -10,7 +10,11 @@ import com.datastax.driver.core.querybuilder.Select.Builder;
 import com.datastax.driver.core.querybuilder.Select.Where;
 import com.datastax.driver.core.querybuilder.Update.Assignments;
 import com.google.common.util.concurrent.FutureCallback;
+
+import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 import org.apache.commons.collections.CollectionUtils;
@@ -607,6 +611,15 @@ public abstract class CassandraOperationImpl implements CassandraOperation {
               }
               option = option.replace("\\", "\\\\").replace("_", "\\_");
               where = where.and(QueryBuilder.like(filter.getKey(), option));
+            } else if(filter.getKey().equalsIgnoreCase(JsonKey.ENROLL_DATE)){
+              final String OLD_FORMAT = "yyyy-MM-dd";
+             final String NEW_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
+              DateFormat formatter = new SimpleDateFormat(OLD_FORMAT);
+              Date strDate = formatter.parse(filter.getValue().toString());
+              ((SimpleDateFormat) formatter).applyPattern(NEW_FORMAT);
+              String newDateString = formatter.format(strDate);
+              where = where.and(QueryBuilder.gte(filter.getKey(), Timestamp.valueOf(newDateString)));
+
             } else {
               where = where.and(QueryBuilder.eq(filter.getKey(), filter.getValue()));
             }
