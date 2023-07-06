@@ -915,17 +915,17 @@ public abstract class CassandraOperationImpl implements CassandraOperation {
     return response;
   }
 
-  public Response deleteRecordBatchId(String keyspaceName, String tableName, String identifier, RequestContext requestContext) {
+  public Response deleteRecordBatchId(String keyspaceName, String tableName, List<String> identifier, RequestContext requestContext) {
     long startTime = System.currentTimeMillis();
     logger.info(requestContext,
             "Cassandra Service deleteRecord method started at ==" + startTime);
     Response response = new Response();
     try {
-      Delete.Where delete =
-              QueryBuilder.delete()
-                      .from(keyspaceName, tableName)
-                      .where(eq(Constants.BATCHID, identifier));
-      logger.debug(requestContext, delete.getQueryString());
+      Delete delete = QueryBuilder.delete().from(keyspaceName, tableName);
+      Delete.Where deleteWhere = delete.where();
+      deleteWhere.and(QueryBuilder.eq(JsonKey.USER_ID_KEY, identifier.get(1)))
+              .and(QueryBuilder.eq(JsonKey.BATCH_ID_KEY, identifier.get(0)));
+      logger.debug(requestContext, deleteWhere.getQueryString());
       connectionManager.getSession(keyspaceName).execute(delete);
       response.put(Constants.RESPONSE, Constants.SUCCESS);
     } catch (Exception e) {
@@ -940,17 +940,17 @@ public abstract class CassandraOperationImpl implements CassandraOperation {
   }
 
 
-  public Response deleteRecordCourseId(String keyspaceName, String tableName, String identifier, RequestContext requestContext) {
+  public Response deleteRecordCourseId(String keyspaceName, String tableName, List<String> identifier, RequestContext requestContext) {
     long startTime = System.currentTimeMillis();
     logger.info(requestContext,
             "Cassandra Service deleteRecord method started at ==" + startTime);
     Response response = new Response();
     try {
-      Delete.Where delete =
-              QueryBuilder.delete()
-                      .from(keyspaceName, tableName)
-                      .where(eq(Constants.COURSEID, identifier));
-      logger.debug(requestContext, delete.getQueryString());
+      Delete delete = QueryBuilder.delete().from(keyspaceName, tableName);
+      Delete.Where deleteWhere = delete.where();
+      deleteWhere.and(QueryBuilder.eq(JsonKey.USER_ID_KEY, identifier.get(1)))
+              .and(QueryBuilder.eq(JsonKey.COURSE_ID_KEY, identifier.get(0)));
+      logger.debug(requestContext, deleteWhere.getQueryString());
       connectionManager.getSession(keyspaceName).execute(delete);
       response.put(Constants.RESPONSE, Constants.SUCCESS);
     } catch (Exception e) {

@@ -167,8 +167,8 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
     val batchUserData: BatchUser = batchUserDao.readById(request.getRequestContext, batchId,userId)
     logger.info(request.getRequestContext, "fetching data in course_user_mapping and batch_user_mapping")
     if (courseUserData.getUserId != null || batchUserData.getUserId != null) {
-      batchUserDao.delete(request.getRequestContext, batchId)
-      courseUserDao.delete(request.getRequestContext, courseId)
+      batchUserDao.delete(request.getRequestContext, batchId, userId)
+      courseUserDao.delete(request.getRequestContext, courseId, userId)
     }
 
   }

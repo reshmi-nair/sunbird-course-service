@@ -93,8 +93,10 @@ public class BatchUserDaoImpl implements BatchUserDao {
                 requestContext, batchUserDb.getKeySpace(), batchUserDb.getTableName(), attributeMap, primaryKey);
     }
 
-    public Response delete(RequestContext requestContext, String batchid) {
+    public Response delete(RequestContext requestContext, String batchid,String userid) {
+        List<String> list=new ArrayList<>();
+        list.add(batchid); list.add(userid);
         return cassandraOperation.deleteRecordBatchId(
-                batchUserDb.getKeySpace(), batchUserDb.getTableName(), batchid, requestContext);
+                batchUserDb.getKeySpace(), batchUserDb.getTableName(), list, requestContext);
     }
 }

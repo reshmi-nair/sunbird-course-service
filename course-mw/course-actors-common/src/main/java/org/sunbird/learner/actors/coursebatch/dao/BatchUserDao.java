@@ -44,6 +44,6 @@ public interface BatchUserDao {
      * @param  batchId user information to be updated
      * @return Response containing status of batch user delete
      */
-    Response delete(RequestContext requestContext, String batchId);
+    Response delete(RequestContext requestContext, String batchId,String userId);
 
 }

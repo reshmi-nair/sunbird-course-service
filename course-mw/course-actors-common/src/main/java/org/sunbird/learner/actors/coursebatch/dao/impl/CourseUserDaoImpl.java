@@ -103,9 +103,11 @@ public class CourseUserDaoImpl implements CourseUserDao {
 
     }
 
-    public Response delete(RequestContext requestContext, String courseid) {
+    public Response delete(RequestContext requestContext, String courseid,String userid) {
+        List<String> list=new ArrayList<>();
+        list.add(courseid);list.add(userid);
         return cassandraOperation.deleteRecordCourseId(
-                courseUserDb.getKeySpace(), courseUserDb.getTableName(), courseid, requestContext);
+                courseUserDb.getKeySpace(), courseUserDb.getTableName(), list, requestContext);
     }
 
 
