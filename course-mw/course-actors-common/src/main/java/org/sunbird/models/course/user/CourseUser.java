@@ -28,6 +28,16 @@ public class CourseUser implements Serializable {
 
   private Map<String,String> comment;
 
+  private String score;
+
+  public String getScore() {
+    return score;
+  }
+
+  public void setScore(String score) {
+    this.score = score;
+  }
+
   public Map<String, String> getComment() {
     return comment;
   }
