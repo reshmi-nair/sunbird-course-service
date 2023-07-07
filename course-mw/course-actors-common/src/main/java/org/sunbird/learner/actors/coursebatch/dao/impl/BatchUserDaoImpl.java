@@ -19,11 +19,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 public class BatchUserDaoImpl implements BatchUserDao {
 
 
     private CassandraOperation cassandraOperation = ServiceFactory.getInstance();
     private Util.DbInfo batchUserDb = Util.dbInfoMap.get(JsonKey.BATCH_USER_DB);
+
     private ObjectMapper mapper = new ObjectMapper();
 
     public LoggerUtil logger = new LoggerUtil(this.getClass());
@@ -53,15 +55,38 @@ public class BatchUserDaoImpl implements BatchUserDao {
         logger.info(null, "search : " + search);
         search.put(JsonKey.BATCH_ID,batchId);
         Response response =
+                cassandraOperation.getRecordByIndexedPropertyPagination(batchUserDb.getKeySpace(), Util.dbInfoMap.get(JsonKey.USER_ENROLMENTS_DB).getTableName(),search,request);
+        search.remove(JsonKey.STATUS);
+        Response batchUserResponse =
                 cassandraOperation.getRecordByIndexedPropertyPagination(batchUserDb.getKeySpace(), batchUserDb.getTableName(),search,request);
         logger.info(null, "response from cassandraOperation : " + response);
-        List<Map<String, Object>> batchUserList =
+        List<Map<String, Object>> userEnrolmentList =
                 (List<Map<String, Object>>) response.get(JsonKey.RESPONSE);
+        List<Map<String, Object>> batchUserList =
+                (List<Map<String, Object>>) batchUserResponse.get(JsonKey.RESPONSE);
+
         if (CollectionUtils.isEmpty(batchUserList)) {
             return null;
         }
-        logger.info(null, "batchUserList : " + batchUserList);
-        return batchUserList;
+        List<Map<String,Object>> userList=new ArrayList<>();
+        logger.info(null," batchUserList :  "+ batchUserList + " userEnrolmentList :  "+ userEnrolmentList);
+        for(Map<String, Object> val :batchUserList){
+            String userId= val.get(JsonKey.USER_ID).toString();
+            String usernName=(String) val.getOrDefault(JsonKey.USER_NAME, "");
+            String courseName=(String) val.getOrDefault(JsonKey.COURSE_NAME, "");
+            for(Map<String, Object> userBatch :userEnrolmentList) {
+                String batchUserId = userBatch.get(JsonKey.USER_ID).toString();
+                logger.info(null, "userId : " +userId + " batchUserId : "+ batchUserId );
+                if (userId.equals(batchUserId)) {
+                    userBatch.put(JsonKey.USER_NAME, usernName!=null?usernName:"");
+                    userBatch.put(JsonKey.COURSE_NAME, courseName!=null?courseName:"");
+                    userList.add(userBatch);
+                }
+            }
+        }
+
+        logger.debug(null, "userList : " + userList);
+        return userList;
 
     }
 
