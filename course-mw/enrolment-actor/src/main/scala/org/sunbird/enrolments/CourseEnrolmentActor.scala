@@ -798,7 +798,9 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
     if (filteredRoles.nonEmpty) {
       filteredRoles.head
     } else {
-      throw new NoSuchElementException(s"No matching role found for user ID: $userid")
+      //throw new NoSuchElementException(s"No matching role found for user ID: $userid")
+      //returning default role as STUDENT
+      JsonKey.DEFAULT_STUDENT_ROLE
     }
   }
 

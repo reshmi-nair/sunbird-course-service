@@ -1037,5 +1037,6 @@ public final class JsonKey {
   public static final String ASSESS_REQ_BDY ="ASSESS_REQ_BODY";
   public static final String QUESTIONS = "questions";
   public static final String ASSESSMENTS="assessments";
+  public static final String DEFAULT_STUDENT_ROLE = "student";
   private JsonKey() {}
 }
