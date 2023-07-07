@@ -72,13 +72,13 @@ public class BatchUserDaoImpl implements BatchUserDao {
         logger.info(null," batchUserList :  "+ batchUserList + " userEnrolmentList :  "+ userEnrolmentList);
         for(Map<String, Object> val :batchUserList){
             String userId= val.get(JsonKey.USER_ID).toString();
-            String usernName=(String) val.getOrDefault(JsonKey.USER_NAME, "");
+            String usernName=(String) val.getOrDefault(JsonKey.USERNAME, "");
             String courseName=(String) val.getOrDefault(JsonKey.COURSE_NAME, "");
             for(Map<String, Object> userBatch :userEnrolmentList) {
                 String batchUserId = userBatch.get(JsonKey.USER_ID).toString();
                 logger.info(null, "userId : " +userId + " batchUserId : "+ batchUserId );
                 if (userId.equals(batchUserId)) {
-                    userBatch.put(JsonKey.USER_NAME, usernName!=null?usernName:"");
+                    userBatch.put(JsonKey.USERNAME, usernName!=null?usernName:"");
                     userBatch.put(JsonKey.COURSE_NAME, courseName!=null?courseName:"");
                     userList.add(userBatch);
                 }
