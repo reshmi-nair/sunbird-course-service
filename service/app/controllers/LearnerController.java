@@ -10,6 +10,8 @@ import org.sunbird.common.models.util.ProjectLogger;
 import org.sunbird.common.request.LearnerStateRequestValidator;
 import org.sunbird.common.request.Request;
 import org.sunbird.keys.SunbirdKey;
+import org.sunbird.learner.actors.coursebatch.dao.BatchUserDao;
+import org.sunbird.learner.actors.coursebatch.dao.impl.BatchUserDaoImpl;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Results;
@@ -18,8 +20,7 @@ import util.RequestValidator;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.HashMap;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -92,6 +93,7 @@ public class LearnerController extends BaseController {
     String loggingHeaders =  httpRequest.attrs().getOptional(Attrs.X_LOGGING_HEADERS).orElse(null);
     String requestedBy = httpRequest.attrs().getOptional(Attrs.USER_ID).orElse(null);
     String requestedFor = httpRequest.attrs().getOptional(Attrs.REQUESTED_FOR).orElse(null);
+    BatchUserDao batchUserDao = new BatchUserDaoImpl();
     String apiDebugLog = "UpdateContentState Request: " + requestData.toString() + " RequestedBy: " + requestedBy + " RequestedFor: " + requestedFor + " ";
       try {
       Request reqObj = (Request) mapper.RequestMapper.mapRequest(requestData, Request.class);
@@ -114,6 +116,16 @@ public class LearnerController extends BaseController {
         innerMap.put(JsonKey.ASSESS_REQ_BDY,requestData.toString());
       }
       innerMap.put(JsonKey.USER_ID, reqObj.getRequest().get(JsonKey.USER_ID));
+        if(innerMap.containsKey(JsonKey.CONTENTS)){
+          ArrayList<LinkedHashMap<String, Object>> contents =(ArrayList<LinkedHashMap<String, Object>>) innerMap.get(JsonKey.CONTENTS);
+          for(LinkedHashMap<String, Object> content : contents){
+            String batchId=content.get(JsonKey.BATCH_ID).toString();
+            int status=(int)content.get(JsonKey.STATUS);
+            Map<String, Object> contentList=new HashMap<>();
+            contentList.put(JsonKey.STATUS,status);
+            batchUserDao.update(reqObj.getRequestContext(), batchId, innerMap.get(JsonKey.USER_ID).toString(), contentList);
+          }
+        }
       reqObj.setRequest(innerMap);
       CompletionStage<Result> result = actorResponseHandler(contentConsumptionActor, reqObj, timeout, null, httpRequest);
       return result.thenApplyAsync(r -> {
