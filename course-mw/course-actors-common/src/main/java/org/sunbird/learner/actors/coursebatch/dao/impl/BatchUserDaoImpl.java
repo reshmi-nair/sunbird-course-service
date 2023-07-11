@@ -54,39 +54,16 @@ public class BatchUserDaoImpl implements BatchUserDao {
         Map<String, Object> search = (Map<String, Object>)request.getRequest().getOrDefault(JsonKey.FILTERS,"");
         logger.info(null, "search : " + search);
         search.put(JsonKey.BATCH_ID,batchId);
-        Response response =
-                cassandraOperation.getRecordByIndexedPropertyPagination(batchUserDb.getKeySpace(), Util.dbInfoMap.get(JsonKey.USER_ENROLMENTS_DB).getTableName(),search,request);
-        search.remove(JsonKey.STATUS);
         Response batchUserResponse =
                 cassandraOperation.getRecordByIndexedPropertyPagination(batchUserDb.getKeySpace(), batchUserDb.getTableName(),search,request);
-        logger.info(null, "response from cassandraOperation : " + response);
-        List<Map<String, Object>> userEnrolmentList =
-                (List<Map<String, Object>>) response.get(JsonKey.RESPONSE);
         List<Map<String, Object>> batchUserList =
                 (List<Map<String, Object>>) batchUserResponse.get(JsonKey.RESPONSE);
 
         if (CollectionUtils.isEmpty(batchUserList)) {
             return null;
         }
-        List<Map<String,Object>> userList=new ArrayList<>();
-        logger.info(null," batchUserList :  "+ batchUserList + " userEnrolmentList :  "+ userEnrolmentList);
-        for(Map<String, Object> val :batchUserList){
-            String userId= val.get(JsonKey.USER_ID).toString();
-            String usernName=(String) val.getOrDefault(JsonKey.USERNAME, "");
-            String courseName=(String) val.getOrDefault(JsonKey.COURSE_NAME, "");
-            for(Map<String, Object> userBatch :userEnrolmentList) {
-                String batchUserId = userBatch.get(JsonKey.USER_ID).toString();
-                logger.info(null, "userId : " +userId + " batchUserId : "+ batchUserId );
-                if (userId.equals(batchUserId)) {
-                    userBatch.put(JsonKey.USERNAME, usernName!=null?usernName:"");
-                    userBatch.put(JsonKey.COURSE_NAME, courseName!=null?courseName:"");
-                    userList.add(userBatch);
-                }
-            }
-        }
-
-        logger.debug(null, "userList : " + userList);
-        return userList;
+        logger.debug(null, "batchUserList : " + batchUserList);
+        return batchUserList;
 
     }
 
