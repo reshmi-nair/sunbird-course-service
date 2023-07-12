@@ -15,6 +15,7 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.Map.Entry;
 import org.apache.commons.collections.CollectionUtils;
@@ -591,7 +592,6 @@ public abstract class CassandraOperationImpl implements CassandraOperation {
         if(params.containsKey(JsonKey.SEARCH)) {
           isSearch = (Boolean) params.getOrDefault(JsonKey.SEARCH, false);
           if(params.containsKey(JsonKey.BATCH_ID))
-          params.remove(JsonKey.BATCH_ID);
           params.remove(JsonKey.SEARCH);
         }
         Select.Where where = selectQuery.where();
@@ -618,7 +618,10 @@ public abstract class CassandraOperationImpl implements CassandraOperation {
               Date strDate = formatter.parse(filter.getValue().toString());
               ((SimpleDateFormat) formatter).applyPattern(NEW_FORMAT);
               String newDateString = formatter.format(strDate);
-              where = where.and(QueryBuilder.gte(filter.getKey(), Timestamp.valueOf(newDateString)));
+              Timestamp currenttime=Timestamp.valueOf(newDateString);
+              LocalDateTime nextDay= currenttime.toLocalDateTime().plusDays(1);
+              where = where.and(QueryBuilder.gte(filter.getKey(), currenttime));
+              where = where.and(QueryBuilder.lte(filter.getKey(), Timestamp.valueOf(nextDay)));
 
             } else {
               where = where.and(QueryBuilder.eq(filter.getKey(), filter.getValue()));
