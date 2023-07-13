@@ -603,7 +603,7 @@ public abstract class CassandraOperationImpl implements CassandraOperation {
               if (((List) value).size() > 0) {
                 where = createQueryForList(request, where, filter);
               }
-            }else if(isSearch) {
+            }else if(isSearch && (!filter.getKey().equalsIgnoreCase(JsonKey.BATCH_ID))) {
               logger.debug(null,"search param "+filter.getKey());
               String option = filter.getValue().toString();
               if (option.length() >=1) {
