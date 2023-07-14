@@ -607,9 +607,8 @@ public abstract class CassandraOperationImpl implements CassandraOperation {
               logger.debug(null,"search param "+filter.getKey());
               String option = filter.getValue().toString();
               if (option.length() >=1) {
-                option += "%";
+                option =escapeSpecialCharacters(option)+ "%";
               }
-              option = option.replace("\\", "\\\\").replace("_", "\\_");
               where = where.and(QueryBuilder.like(filter.getKey(), option));
             } else if(filter.getKey().equalsIgnoreCase(JsonKey.ENROLL_DATE)){
               final String OLD_FORMAT = "yyyy-MM-dd";
@@ -655,6 +654,13 @@ public abstract class CassandraOperationImpl implements CassandraOperation {
     }
     logQueryElapseTime("getRecordsByIndexedProperty", startTime);
     return response;
+  }
+
+  private String escapeSpecialCharacters(String input) {
+    return input
+            .replace("\\", "\\\\")
+            .replace("_", "\\_")
+            .replace("%", "\\%");
   }
 
   private Where createQueryForList(Request request, Where where, Entry<String, Object> filter) {
