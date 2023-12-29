@@ -69,6 +69,7 @@ public final class Util {
     dbInfoMap.put(
             JsonKey.ASSESSMENT_AGGREGATOR_DB, getDbInfoObject(ProjectUtil.getConfigValue(JsonKey.SUNBIRD_COURSE_KEYSPACE), TableNameUtil.ASSESSMENT_AGGREGATOR_TABLENAME));
     dbInfoMap.put(JsonKey.USER_ENROLMENTS_DB, getDbInfoObject(ProjectUtil.getConfigValue(JsonKey.SUNBIRD_COURSE_KEYSPACE), TableNameUtil.USER_ENROLMENTS_TABLENAME));
+    dbInfoMap.put(JsonKey.PASSBOOK_DB, getDbInfoObject(ProjectUtil.getConfigValue(JsonKey.SUNBIRD_COURSE_KEYSPACE), TableNameUtil.PASSBOOK_TABLENAME));
   }
 
   /**

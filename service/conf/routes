@@ -75,3 +75,8 @@ POST /v1/collection/summary                     @controllers.collectionsummaryag
 #Exhaust Proxy APIs
 POST /v1/jobrequest/submit                      @controllers.exhaustjob.ExhaustJobController.submitJobRequest(request: play.mvc.Http.Request)
 GET /v1/jobrequest/list/:tag                    @controllers.exhaustjob.ExhaustJobController.listJobRequest(tag:String, request: play.mvc.Http.Request)
+
+#Passbook APIs
+POST /v1/passbook/update                        @controllers.passbook.PassbookController.updatePassbook(request: play.mvc.Http.Request)
+POST /v1/passbook/read                          @controllers.passbook.PassbookController.getUserPassbook(request: play.mvc.Http.Request)
+POST /v1/passbook/read/admin                    @controllers.passbook.PassbookController.getPassbookByAdmin(request: play.mvc.Http.Request)

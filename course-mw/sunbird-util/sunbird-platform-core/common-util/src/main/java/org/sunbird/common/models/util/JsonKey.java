@@ -598,5 +598,19 @@ public final class JsonKey {
   public static final String ES_ORGANISATION_INDEX = "es_organisation_index";
   public static final String ES_USER_COURSES_INDEX = "es_user_courses_index";
 
+  public static final String TYPE_NAME = "typeName";
+  public static final String PASSBOOK_DB = "Passbook_db";
+  public static final String PASSBOOK_TYPES = "passbook_types";
+
+  public static final String TYPE_ID = "typeId";
+  public static final String ADDITIONAL_PARAM = "additionalParams";
+  public static final String ACQUIRED_CHANNEL = "acquiredChannel";
+  public static final String CONTEXT_ID = "contextId";
+  public static final String EFFECTIVE_DATE = "effectiveDate";
+  public static final String COMPETENCY_LEVEL_ID = "competencyLevelId";
+  public static final String ACQUIRED_DETAILS = "acquiredDetails";
+  public static final String COMPETENCY_DETAILS = "competencyDetails";
+  public static final String COMPETENCY_ID = "competencyId";
+  public static final String COMPETENCY = "competency";
   private JsonKey() {}
 }

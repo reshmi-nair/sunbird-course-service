@@ -16,5 +16,6 @@ public class TableNameUtil {
     public static final String USER_ACTIVITY_AGG_TABLENAME="user_activity_agg";
     public static final String ASSESSMENT_AGGREGATOR_TABLENAME= "assessment_aggregator";
     public static final String USER_ENROLMENTS_TABLENAME="user_enrolments";
+    public static final String PASSBOOK_TABLENAME="user_passbook";
 
 }
