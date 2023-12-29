@@ -292,6 +292,10 @@ public enum ResponseCode {
   csvError(ResponseMessage.Key.INVALID_CSV_FILE, ResponseMessage.Message.INVALID_CSV_FILE),
   invalidCourseBatchId(
       ResponseMessage.Key.INVALID_COURSE_BATCH_ID, ResponseMessage.Message.INVALID_COURSE_BATCH_ID),
+  invalidCourseUserId(
+          ResponseMessage.Key.INVALID_COURSE_USER_ID, ResponseMessage.Message.INVALID_COURSE_USER_ID),
+  invalidBatchUserId(
+          ResponseMessage.Key.INVALID_BATCH_USER_ID, ResponseMessage.Message.INVALID_BATCH_USER_ID),
   courseBatchIdRequired(
       ResponseMessage.Key.COURSE_BATCH_ID_MISSING, ResponseMessage.Message.COURSE_BATCH_ID_MISSING),
   enrollmentTypeValidation(

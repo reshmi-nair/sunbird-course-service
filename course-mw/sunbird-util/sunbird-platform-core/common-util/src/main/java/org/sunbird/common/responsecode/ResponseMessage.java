@@ -163,6 +163,8 @@ public interface ResponseMessage {
         "Invalid Enrollment End date. Please provide future date.";
     String INVALID_CSV_FILE = "Please provide valid csv file.";
     String INVALID_COURSE_BATCH_ID = "Invalid course batch id ";
+    String INVALID_COURSE_USER_ID = "Invalid course user id ";
+    String INVALID_BATCH_USER_ID = "Invalid batch user id ";
     String COURSE_BATCH_ID_MISSING = "Course batch Id required";
     String ENROLLMENT_TYPE_VALIDATION = "Enrollment type should be invite-only.";
     String USER_NOT_BELONGS_TO_ANY_ORG = "User does not belongs to any org .";
@@ -530,6 +532,10 @@ public interface ResponseMessage {
     String ENROLLMENT_END_DATE_UPDATE_ERROR = "ENROLLMENT_END_DATE_UPDATE_ERROR";
     String INVALID_CSV_FILE = "INVALID_CSV_FILE";
     String INVALID_COURSE_BATCH_ID = "INVALID_COURSE_BATCH_ID";
+
+    String INVALID_COURSE_USER_ID = "INVALID_COURSE_USER_ID";
+
+    String INVALID_BATCH_USER_ID = "INVALID_BATCH_USER_ID";
     String COURSE_BATCH_ID_MISSING = "COURSE_BATCH_ID_MISSING";
     String ENROLLMENT_TYPE_VALIDATION = "ENROLLMENT_TYPE_VALIDATION";
     String COURSE_CREATED_FOR_NULL = "COURSE_CREATED_FOR_NULL";

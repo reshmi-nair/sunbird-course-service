@@ -124,4 +124,17 @@ public class CourseBatchController extends BaseController {
         getAllRequestHeaders(httpRequest),
         httpRequest);
   }
+
+    public CompletionStage<Result> getParticipantsDetails(Http.Request httpRequest) {
+        return handleRequest(
+                courseBatchActorRef,
+                ActorOperations.GET_PARTICIPANTS_DETAILS.getValue(),
+                httpRequest.body().asJson(),
+                (request) -> {
+                    new CourseBatchRequestValidator().validateGetParticipantsRequest((Request) request);
+                    return null;
+                },
+                getAllRequestHeaders(httpRequest),
+                httpRequest);
+    }
 }

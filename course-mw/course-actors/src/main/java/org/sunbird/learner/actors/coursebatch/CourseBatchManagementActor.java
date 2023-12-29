@@ -38,15 +38,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.sunbird.common.models.util.JsonKey.ID;
@@ -84,6 +76,9 @@ public class CourseBatchManagementActor extends BaseActor {
         break;
       case "getParticipants":
         getParticipants(request);
+        break;
+      case "getParticipantsDetails":
+        getParticipantsDetails(request);
         break;
       default:
         onReceiveUnsupportedOperation(request.getOperation());
@@ -631,6 +626,59 @@ public class CourseBatchManagementActor extends BaseActor {
     }
     String batchID = (String) request.get(JsonKey.BATCH_ID);
     List<String> participants = userCoursesService.getParticipantsList(batchID, active, actorMessage.getRequestContext());
+
+    if (CollectionUtils.isEmpty(participants)) {
+      participants = new ArrayList<>();
+    }
+
+    Response response = new Response();
+    Map<String, Object> result = new HashMap<String, Object>();
+    result.put(JsonKey.COUNT, participants.size());
+    result.put(JsonKey.PARTICIPANTS, participants);
+    response.put(JsonKey.BATCH, result);
+    sender().tell(response, self());
+  }
+
+  private void getParticipantsDetails(Request actorMessage) {
+    Map<String, Object> request =
+        (Map<String, Object>) actorMessage.getRequest().get(JsonKey.BATCH);
+    Map<String, Object> sortBy =
+            (Map<String, Object>) actorMessage.getRequest().get(JsonKey.SORT_BY);
+    boolean active = true;
+    if (null != request.get(JsonKey.ACTIVE)) {
+      active = (boolean) request.get(JsonKey.ACTIVE);
+    }
+    String batchID = (String) request.get(JsonKey.BATCH_ID);
+    List<Map<String, Object>> participants = userCoursesService.getParticipantsDetailList(batchID, active, actorMessage);
+    logger.info(null," ---- participants list fetched" + participants);
+
+    if (CollectionUtils.isNotEmpty(participants)) {
+      String sortKey = sortBy.keySet().stream().findFirst().get();
+      if (participants.stream().findFirst().get().keySet().contains(sortKey)) {
+        Object sortKeyVal = participants.stream().findFirst().get().get(sortKey);
+        if(sortKeyVal instanceof Date) {
+          if(sortBy.entrySet().stream().findFirst().get().getValue().equals("desc")) {
+            participants.sort(Comparator.comparing(m -> (Date) m.get(sortKey), Comparator.nullsLast(Comparator.reverseOrder())));
+          } else {
+            participants.sort(Comparator.comparing(m -> (Date) m.get(sortKey), Comparator.nullsLast(Comparator.naturalOrder())));
+          }
+        } else if(sortKeyVal instanceof Integer) {
+          if(sortBy.entrySet().stream().findFirst().get().getValue().equals("desc")) {
+            participants.sort(Comparator.comparing(m -> (Integer) m.get(sortKey), Comparator.nullsLast(Comparator.reverseOrder())));
+          } else {
+            participants.sort(Comparator.comparing(m -> (Integer) m.get(sortKey), Comparator.nullsLast(Comparator.naturalOrder())));
+          }
+        } else {
+          if(sortBy.entrySet().stream().findFirst().get().getValue().equals("desc")) {
+            participants.sort(Comparator.comparing(m -> (String) m.get(sortKey), Comparator.nullsLast(Comparator.reverseOrder())));
+          } else {
+            participants.sort(Comparator.comparing(m -> (String) m.get(sortKey), Comparator.nullsLast(Comparator.naturalOrder())));
+          }
+        }
+      } else {
+        participants.sort(Comparator.comparing(m -> (Date) m.get(JsonKey.COURSE_ENROLL_DATE), Comparator.nullsLast(Comparator.reverseOrder())));
+      }
+    }
 
     if (CollectionUtils.isEmpty(participants)) {
       participants = new ArrayList<>();

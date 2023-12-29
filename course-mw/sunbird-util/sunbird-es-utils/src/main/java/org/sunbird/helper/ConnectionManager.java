@@ -40,6 +40,8 @@ public class ConnectionManager {
       String cluster = System.getenv(JsonKey.SUNBIRD_ES_CLUSTER);
       String hostName = System.getenv(JsonKey.SUNBIRD_ES_IP);
       String port = System.getenv(JsonKey.SUNBIRD_ES_PORT);
+
+      logger.info(null, "connection manager - system variables - cluster - "+cluster+" hostname - "+hostName+" es port"+port);
       if (StringUtils.isBlank(hostName) || StringUtils.isBlank(port)) {
         return false;
       }

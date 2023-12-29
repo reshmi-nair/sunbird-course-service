@@ -284,6 +284,7 @@ CREATE TABLE IF NOT EXISTS sunbird.user_courses(id text, courseId text, courseNa
 description text,tocUrl text,status int,active boolean,delta text,grade text,progress int,lastReadContentId text,
 lastReadContentStatus int,addedBy text,courseLogoUrl text, dateTime timestamp, contentId text, PRIMARY KEY (id));
 
+ALTER TABLE sunbird.user_courses add comment map<text,text>;
 CREATE INDEX inx_ucs_userId ON sunbird.user_courses (userId);
 CREATE INDEX inx_ucs_courseId ON sunbird.user_courses (courseId);
 CREATE INDEX inx_ucs_batchId ON sunbird.user_courses (batchId);
@@ -560,3 +561,8 @@ ALTER TABLE sunbird.geo_location ADD userCountTTL text;
 // adding new column in client-info to save the channel
 ALTER TABLE sunbird.client_info ADD channel text;
 CREATE INDEX inx_ci_clientchannel ON sunbird.client_info(channel);
+
+// April 12th 2023
+CREATE TABLE IF NOT EXISTS sunbird_courses.batch_user_mapping(batchid text,name text,enrolled_date timestamp,status int,userid text,username text,PRIMARY KEY (batchid, name, enrolled_date, status, userid, username));
+
+CREATE TABLE IF NOT EXISTS sunbird_courses.course_user_mapping(courseid text,name text,enrolled_date timestamp,status int,userid text,username text,PRIMARY KEY (courseid, name, enrolled_date, status, userid, username));

@@ -6,6 +6,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import java.util.List;
 import java.util.Map;
 import org.sunbird.common.models.response.Response;
+import org.sunbird.common.request.Request;
 import org.sunbird.common.request.RequestContext;
 
 /**
@@ -58,7 +59,16 @@ public interface CassandraOperation {
    */
   public Response deleteRecord(String keyspaceName, String tableName, String identifier, RequestContext requestContext);
 
-  /**
+
+  public Response deleteRecordBatchId(String keyspaceName, String tableName, List<String> identifier, RequestContext requestContext);
+
+
+  public Response deleteRecordCourseId(String keyspaceName, String tableName, List<String> identifier, RequestContext requestContext);
+
+    Response getRecordByIndexedPropertyPagination(
+            String keyspaceName, String tableName, Map<String, Object> params, Request request);
+
+    /**
    * @desc This method is used to delete record in cassandra db by their primary composite key
    * @param keyspaceName Keyspace name
    * @param tableName Table name
@@ -173,6 +183,8 @@ public interface CassandraOperation {
           Map<String, Object> compositeKey);
 
   Response getRecordByIdentifier(RequestContext requestContext, String keyspaceName, String tableName, Object key, List<String> fields);
+
+  Response getRecordByUserId(RequestContext requestContext, String keyspaceName, String tableName, Object key, List<String> fields);
   
   /**
    * Method to perform batch insert operation.

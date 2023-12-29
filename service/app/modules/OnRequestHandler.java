@@ -66,8 +66,10 @@ public class OnRequestHandler implements ActionCreator {
           if (result != null) {
               return result;
           }
+          logger.debug(null,"Auth enabled flag is "+ ConfigFactory.load().getBoolean(JsonKey.AUTH_ENABLED));
           if (ConfigFactory.load().getBoolean(JsonKey.AUTH_ENABLED)) {
               message = RequestInterceptor.verifyRequestData(request);
+              logger.debug(null,"Message inside the on request handler"+ message);
           } else {
               message = JsonKey.ANONYMOUS;
           }
@@ -88,9 +90,13 @@ public class OnRequestHandler implements ActionCreator {
         // call method to set all the required params for the telemetry event(log)...
         request = intializeRequestInfo(request, message, messageId);
         request = request.addAttr(Attrs.X_AUTH_TOKEN, request.header(HeaderParam.X_Authenticated_User_Token.getName()).orElse(""));
+        logger.debug(null,"USER_UNAUTH_STATES contains message "+ !USER_UNAUTH_STATES.contains(message));
+        logger.debug(null,"USER_UNAUTH_STATES containes child "+ !USER_UNAUTH_STATES.contains(childId));
         if ((!USER_UNAUTH_STATES.contains(message)) && (childId==null || !USER_UNAUTH_STATES.contains(childId))) {
+            logger.debug(null,"Message inside the if"+ message);
             request = request.addAttr(Attrs.USER_ID, message);
             request = request.addAttr(Attrs.IS_AUTH_REQ, "false");
+            logger.debug(null,"Request in on request handler"+ request);
           for (String uri : RequestInterceptor.restrictedUriList) {
             if (request.path().contains(uri)) {
                 request = request.addAttr(Attrs.IS_AUTH_REQ, "true");

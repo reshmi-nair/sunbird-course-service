@@ -66,14 +66,18 @@ public class BaseController extends Controller {
       org.sunbird.common.request.Request request, String operation, Http.Request httpRequest) {
     request.setOperation(operation);
     request.setRequestId(httpRequest.attrs().getOptional(Attrs.REQUEST_ID).orElse(null));
+    logger.debug(request.getRequestContext(),"setRequestId is "+ httpRequest.attrs().getOptional(Attrs.REQUEST_ID).orElse(null));
     request.setEnv(getEnvironment());
     request.setRequestContext(getRequestContext(httpRequest, request));
     request.getContext().put(JsonKey.REQUESTED_BY, httpRequest.attrs().getOptional(Attrs.USER_ID).orElse(null));
+    logger.debug(request.getRequestContext(),"requested by is "+ httpRequest.attrs().getOptional(Attrs.USER_ID).orElse(null));
     request.getRequest().put(JsonKey.REQUESTED_BY, httpRequest.attrs().getOptional(Attrs.USER_ID).orElse(null));
     if (StringUtils.isNotBlank(httpRequest.attrs().getOptional(Attrs.REQUESTED_FOR).orElse(null)))
       request.getContext().put(SunbirdKey.REQUESTED_FOR, httpRequest.attrs().get(Attrs.REQUESTED_FOR));
     request.getContext().put(JsonKey.X_AUTH_TOKEN, httpRequest.attrs().getOptional(Attrs.X_AUTH_TOKEN).orElse(""));
+    logger.debug(request.getRequestContext(),"Auth token is "+ httpRequest.attrs().getOptional(Attrs.X_AUTH_TOKEN).orElse(""));
     request = transformUserId(request);
+    logger.debug(request.getRequestContext(),"Request in last "+ request);
     return request;
   }
 
@@ -758,6 +762,7 @@ public class BaseController extends Controller {
       request.getRequest().put(JsonKey.ID, ProjectUtil.getLmsUserId(id));
       id = (String) request.getRequest().get(JsonKey.USER_ID);
       request.getRequest().put(JsonKey.USER_ID, ProjectUtil.getLmsUserId(id));
+      logger.debug(request.getRequestContext(),"Request inside the transformUserId is "+ request);
       return request;
     }
     return request;
